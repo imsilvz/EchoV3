@@ -1,0 +1,85 @@
+@import '../../common.scss';
+
+.context-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  border-radius: 0.5rem;
+  border: 1px solid #171717;
+  background-color: #2e2e2e;
+  padding: 0.25rem 0;
+  box-shadow: 0px 3px 5px -1px rgba(0, 0, 0, 0.2),
+    0px 5px 8px 0px rgba(0, 0, 0, 0.14),
+    0px 1px 14px 0px rgba(0, 0, 0, 0.12);
+
+  >.context-menu-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 2rem 0.25rem 1rem;
+    width: 100%;
+
+    &:not(disabled) {
+      cursor: pointer;
+
+      &:hover, &.active {
+        background-color: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    >p {
+      font-size: 1rem;
+      line-height: 1.25rem;
+      color: white;
+      margin: 0;
+      vertical-align: middle;
+      user-select: none;
+    }
+
+    >.context-menu-checkbox {
+      position: absolute;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 0.25rem;
+      width: 1rem;
+      height: 1rem;
+      top: calc(50% - 0.5rem);
+      right: 0.5rem;
+      font-size: 0.875rem;
+      line-height: 1rem;
+      text-align: center;
+
+      &.checked {
+        &::after {
+          color: white;
+          content: "✓"
+        }
+      }
+    }
+
+    >.context-menu-chevron {
+      position: absolute;
+      border-radius: 0.25rem;
+      width: 1rem;
+      height: 1rem;
+      top: calc(50% - 0.5rem);
+      right: 0.5rem;
+      font-size: 1.5rem;
+      line-height: 1.5rem;
+      text-align: center;
+
+      &::after {
+        position: absolute;
+        color: white;
+        content: "›";
+        top: -35%;
+      }
+    }
+  }
+
+  >.context-menu-separator {
+    background-color: rgba(255, 255, 255, 0.12);
+    height: 1px;
+    width: 100%;
+  }
+}

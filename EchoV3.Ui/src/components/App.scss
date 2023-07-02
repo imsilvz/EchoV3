@@ -1,0 +1,16 @@
+@import '../common.scss';
+
+.echo-list {
+  height: 100%;
+  width: 100%;
+  padding: 0.125rem 0.25rem 0.125rem 0.25rem;
+  > .echo-list-internal {
+    overflow-y: scroll;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    &::-webkit-scrollbar-thumb {
+      display: none;
+    }
+  }
+}

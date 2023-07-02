@@ -1,0 +1,49 @@
+{
+  "name": "echov3.ui",
+  "version": "0.2.12",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "test": "vitest run",
+    "build": "tsc && vite build --emptyOutDir",
+    "format": "prettier --config .prettierrc --ignore-path .prettierignore --write \"./**/*.+(js|jsx|ts|tsx|json)\"",
+    "lint": "eslint --fix --ext .js,.jsx,.ts,.tsx",
+    "debug": "tsc --listFiles",
+    "prepare": "cd .. && husky install EchoV3.Ui/.husky"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.9.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.1.1",
+    "react-router-dom": "^6.14.1",
+    "react-virtuoso": "^4.3.11"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^14.0.0",
+    "@types/node": "^20.3.3",
+    "@types/react": "^18.2.14",
+    "@types/react-dom": "^18.2.6",
+    "@types/react-router-dom": "^5.3.3",
+    "@typescript-eslint/eslint-plugin": "^5.60.1",
+    "@typescript-eslint/parser": "^5.60.1",
+    "@vitejs/plugin-react": "^4.0.1",
+    "eslint": "^8.44.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.32.2",
+    "husky": "^8.0.3",
+    "jsdom": "^22.1.0",
+    "lint-staged": "^13.1.4",
+    "prettier": "^2.8.8",
+    "sass": "^1.63.6",
+    "typescript": "^5.1.6",
+    "vite": "^4.3.9",
+    "vite-plugin-singlefile": "^0.13.5",
+    "vitest": "^0.33.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json}": "npm run format"
+  }
+}

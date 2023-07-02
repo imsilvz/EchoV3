@@ -1,0 +1,78 @@
+﻿<Window 
+    x:Class="EchoV3.Windows.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:EchoV3"
+    xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+    mc:Ignorable="d" 
+    Height="450" Width="800"
+    WindowStyle="None"
+    ResizeMode="CanResize"
+    Background="#80000000"
+    AllowsTransparency="True"
+    Deactivated="MainWindow_Deactivated"
+    MouseLeftButtonDown="MainWindow_MouseLeftButtonDown"
+>
+    <WindowChrome.WindowChrome>
+        <WindowChrome     
+            CaptionHeight="1"  
+            CornerRadius ="0"
+            ResizeBorderThickness="4"         
+            GlassFrameThickness="0">
+        </WindowChrome>
+    </WindowChrome.WindowChrome>
+    
+    <Border Background="Transparent">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="18" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <DockPanel Background="#121212">
+                <TextBlock 
+                    Text="Echo - FFXIV Chat Listener"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
+                    Foreground="White"
+                    Opacity="0.7"
+                    FontSize="16"
+                    Margin="4,0,0,2"
+                />
+
+                <StackPanel
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                >
+                    <Button 
+                        x:Name="btnClose" 
+                        Width="18" 
+                        Height="18" 
+                        Content="✕"
+                        BorderThickness="0"
+                        Padding="0"
+                        Foreground="White"
+                        Background="Transparent"
+                        Click="CloseButton_OnClick"
+                        VerticalAlignment="Center" HorizontalAlignment="Center"
+                    />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Grid.Row="2" Margin="2,0,2,2">
+                <wv2:WebView2 
+                    Name="webView"
+                    DefaultBackgroundColor="Transparent"
+                />
+            </DockPanel>
+
+        </Grid>
+    </Border>
+</Window>

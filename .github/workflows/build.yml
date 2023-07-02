@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, staging ]
+  pull_request:
+    branches: [ master, staging ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '7.0.x' ]
+        node-version: [ '18.x' ]
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install Node.js dependencies
+        working-directory: EchoV3.Ui
+        run: npm install
+      - name: Build Node.js resources
+        working-directory: EchoV3.Ui
+        run: npm run build
+
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Install dependencies
+        working-directory: EchoV3
+        run: dotnet restore EchoV3.csproj
+      - name: Build
+        working-directory: EchoV3
+        run: dotnet build EchoV3.csproj --configuration Release --no-restore
+      - name: Publish
+        working-directory: EchoV3
+        run: dotnet publish EchoV3.csproj --configuration Release --no-restore

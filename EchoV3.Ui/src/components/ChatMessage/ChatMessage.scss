@@ -1,0 +1,60 @@
+@import '../../common.scss';
+
+.chat-message {
+  padding: 0.125rem 0 0.125rem 0;
+  user-select: none;
+  > p {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-weight: 400;
+    text-shadow:
+      -1px -1px 0 rgba(0, 0, 0, 0.7),  
+      1px -1px 0 rgba(0, 0, 0, 0.7),
+      -1px 1px 0 rgba(0, 0, 0, 0.7),
+      1px 1px 0 rgba(0, 0, 0, 0.7);
+    .quoted-span {
+      color: $ChatColor-Say;
+    }
+  }
+  &.msgtype-say {
+    > p {
+      color: $ChatColor-Say;
+      &.quote-highlight {
+        &.emote-mode {
+          color: $ChatColor-Emote;
+        }
+      }
+    }
+  }
+  &.msgtype-shout {
+    > p {
+      color: $ChatColor-Shout;
+    }
+  }
+  &.msgtype-yell {
+    > p {
+      color: $ChatColor-Shout;
+    }
+  }
+  &.msgtype-party {
+    > p {
+      color: $ChatColor-Party;
+    }
+  }
+  &.msgtype-cwls {
+    > p {
+      color: $ChatColor-CWLS;
+    }
+  }
+  &.msgtype-yell {
+    > p {
+      color: $ChatColor-Yell;
+    }
+  }
+  &.msgtype-emote {
+    > p {
+      color: $ChatColor-Emote;
+    }
+  }
+}

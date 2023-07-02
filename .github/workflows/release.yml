@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '7.0.x' ]
+        node-version: [ '18.x' ]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: ./source/EchoV3
+      - uses: actions/checkout@v3
+        with:
+          path: ./source/Deucalion
+          repository: ff14wed/deucalion
+          ref: refs/heads/main
+
+      - name: Copy Pre-Compile Source
+        run: Copy-Item ./source/EchoV3/* -Destination . -Recurse
+
+      - run: Get-ChildItem -Force
+      - run: Get-ChildItem -Force
+        working-directory: ./source/Deucalion
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - run: cargo build --manifest-path=./source/Deucalion/Cargo.toml --release
+      - run: Copy-Item ./source/Deucalion/target/release/deucalion.dll -Destination  ./EchoV3/Resources
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install Node.js dependencies
+        working-directory: EchoV3.Ui
+        run: npm install
+      - name: Build Node.js resources
+        working-directory: EchoV3.Ui
+        run: npm run build
+
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Install dependencies
+        working-directory: EchoV3
+        run: dotnet restore EchoV3.csproj
+      - name: Build
+        working-directory: EchoV3
+        run: dotnet build EchoV3.csproj --configuration Release --no-restore
+      - name: Publish
+        working-directory: EchoV3
+        run: dotnet publish EchoV3.csproj --configuration Release --no-restore
+
+      - name: Exit if not on production branch
+        if: endsWith(github.event.base_ref, 'master') == false
+        run: exit -1
+
+      - run: Get-ChildItem -Path ./EchoV3/bin/Release/net7.0-windows/win-x64/publish/
+
+      - name: Copy Echo source code to Release
+        run: |
+          New-item -Path ./EchoV3/bin/Release/net7.0-windows/win-x64/publish/source/EchoV3/ -ItemType Directory
+          Copy-Item ./source/EchoV3/* -Destination ./EchoV3/bin/Release/net7.0-windows/win-x64/publish/source/EchoV3/ -Recurse
+      - run: Get-ChildItem -Path ./EchoV3/bin/Release/net7.0-windows/win-x64/publish/source/
+      - name: Copy Deucalion source code to Release
+        run: |
+          New-item -Path ./EchoV3/bin/Release/net7.0-windows/win-x64/publish/source/Deucalion/ -ItemType Directory
+          Copy-Item ./source/Deucalion/* -Destination ./EchoV3/bin/Release/net7.0-windows/win-x64/publish/source/Deucalion/ -Recurse
+      - run: Get-ChildItem -Path ./EchoV3/bin/Release/net7.0-windows/win-x64/publish/source/
+      - name: Zip Results
+        run: Compress-Archive -Path ./EchoV3/bin/Release/net7.0-windows/win-x64/publish/* -Destination EchoV3-${{ github.ref_name }}.zip
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: EchoV3-${{ github.ref_name }}.zip
