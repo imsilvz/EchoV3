@@ -16,7 +16,9 @@ import {
 import './ContextMenu.scss';
 import { GetCanvasFont, GetTextWidth } from '../../utility/canvas';
 
+type ContextType = 'PLAYER';
 interface ContextMenuProps {
+  contextType?: ContextType;
   xPos: number;
   yPos: number;
   onClose: () => void;
@@ -176,7 +178,7 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
   );
 };
 
-const ContextMenu = ({ xPos, yPos, onClose }: ContextMenuProps) => {
+const ContextMenu = ({ contextType, xPos, yPos, onClose }: ContextMenuProps) => {
   const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
   const listenerMode = useAppSelector(selectListenerMode);
@@ -185,12 +187,21 @@ const ContextMenu = ({ xPos, yPos, onClose }: ContextMenuProps) => {
   const [contextHeight, setContextHeight] = useState<number>(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  // DEFAULT CONTEXT MENU
   // Listener Mode []
   // -- Separator --
   // Name Color Strategy > Custom, Random, Job-Based
   // Chat Channel Settings > Say, Emote, Yell, Shout, Tell
   // -- Separator --
-  // Close Window
+  // Clear Ignore List (if playercount > 0)
+  // Clear Message History
+
+  // PLAYER CONTEXT MENU
+  // Player Name (label)
+  // -- Separator --
+  // Set Name Color
+  // Add to Ignore List
+
   const menuItems: MenuItemConfig[] = [
     {
       title: 'Listener Mode',
@@ -242,10 +253,7 @@ const ContextMenu = ({ xPos, yPos, onClose }: ContextMenuProps) => {
           onClick: () => dispatch(setChatSettings({ Emote: !chatSettings.Emote })),
         },
         {
-          title: 'Yell',
-          type: 'CHECKBOX',
-          checked: chatSettings.Yell,
-          onClick: () => dispatch(setChatSettings({ Yell: !chatSettings.Yell })),
+          type: 'SEPARATOR',
         },
         {
           title: 'Shout',
@@ -253,13 +261,19 @@ const ContextMenu = ({ xPos, yPos, onClose }: ContextMenuProps) => {
           checked: chatSettings.Shout,
           onClick: () => dispatch(setChatSettings({ Shout: !chatSettings.Shout })),
         },
+        {
+          title: 'Yell',
+          type: 'CHECKBOX',
+          checked: chatSettings.Yell,
+          onClick: () => dispatch(setChatSettings({ Yell: !chatSettings.Yell })),
+        },
       ],
     },
     {
       type: 'SEPARATOR',
     },
     {
-      title: 'Close Window',
+      title: 'Clear Message History',
       type: 'ACTION',
     },
   ];
