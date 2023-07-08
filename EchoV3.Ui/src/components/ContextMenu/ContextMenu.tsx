@@ -33,7 +33,7 @@ interface ContextMenuItemProps {
   config: MenuItemConfig;
 }
 
-type MenuItemType = 'ACTION' | 'CHECKBOX' | 'SEPARATOR' | 'SUBMENU';
+type MenuItemType = 'ACTION' | 'CHECKBOX' | 'LABEL' | 'SEPARATOR' | 'SUBMENU';
 interface GeneralMenuItemConfig {
   title?: string;
   type: MenuItemType;
@@ -52,6 +52,11 @@ interface CheckboxMenuItemConfig extends GeneralMenuItemConfig {
   onClick?: () => void;
 }
 
+interface LabelMenuItemConfig extends GeneralMenuItemConfig {
+  title: string;
+  type: 'LABEL';
+}
+
 interface SeparatorMenuItemConfig extends GeneralMenuItemConfig {
   type: 'SEPARATOR';
 }
@@ -65,6 +70,7 @@ interface SubmenuMenuItemConfig extends GeneralMenuItemConfig {
 type MenuItemConfig =
   | ActionMenuItemConfig
   | CheckboxMenuItemConfig
+  | LabelMenuItemConfig
   | SeparatorMenuItemConfig
   | SubmenuMenuItemConfig;
 
@@ -77,6 +83,12 @@ const ContextMenuItem = ({ config }: ContextMenuItemProps) => {
           <span
             className={`context-menu-checkbox${config.checked ? ' checked' : ''}`}
           />
+        </div>
+      );
+    case 'LABEL':
+      return (
+        <div className="context-menu-label">
+          <p>{config.title}</p>
         </div>
       );
     case 'SEPARATOR':
@@ -123,15 +135,22 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
     let height = 8; // padding
     for (let i = 0; i < config.submenu.length; i++) {
       const menuItem = config.submenu[i];
-      if (menuItem.type !== 'SEPARATOR') {
+      if (menuItem.type === 'SEPARATOR') {
+        height += 1;
+      } else if (menuItem.type === 'LABEL') {
+        // text width + padding (both sides) + border
+        const titleWidth = GetTextWidth(menuItem.title, GetCanvasFont()) + 48 + 2;
+        if (titleWidth > max) {
+          max = titleWidth;
+        }
+        height += 12 + 4; // line height + padding
+      } else {
         // text width + padding (both sides) + border
         const titleWidth = GetTextWidth(menuItem.title, GetCanvasFont()) + 48 + 2;
         if (titleWidth > max) {
           max = titleWidth;
         }
         height += 20 + 8; // line height + padding
-      } else {
-        height += 1;
       }
       height += 4; // gap
     }
@@ -194,6 +213,12 @@ const ContextMenu = ({
   const [contextHeight, setContextHeight] = useState<number>(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  // PLAYER CONTEXT MENU
+  // Player Name (label)
+  // -- Separator --
+  // Set Name Color
+  // Add to Ignore List
+
   // DEFAULT CONTEXT MENU
   // Listener Mode []
   // -- Separator --
@@ -203,87 +228,104 @@ const ContextMenu = ({
   // Clear Ignore List (if playercount > 0)
   // Clear Message History
 
-  // PLAYER CONTEXT MENU
-  // Player Name (label)
-  // -- Separator --
-  // Set Name Color
-  // Add to Ignore List
-
-  const menuItems: MenuItemConfig[] = [
-    {
-      title: 'Listener Mode',
-      type: 'CHECKBOX',
-      checked: listenerMode,
-      onClick: () => dispatch(setListenerMode(!listenerMode)),
-    },
-    {
-      type: 'SEPARATOR',
-    },
-    {
-      title: 'Name Color Strategy',
-      type: 'SUBMENU',
-      submenu: [
-        {
-          title: 'Custom',
-          type: 'CHECKBOX',
-          checked: nameColorMode === 'CUSTOM',
-          onClick: () => dispatch(setNameColorMode('CUSTOM')),
-        },
-        {
-          title: 'Random',
-          type: 'CHECKBOX',
-          checked: nameColorMode === 'RANDOM',
-          onClick: () => dispatch(setNameColorMode('RANDOM')),
-        },
-        {
-          title: 'Job-Based',
-          type: 'CHECKBOX',
-          checked: nameColorMode === 'JOB',
-          onClick: () => dispatch(setNameColorMode('JOB')),
-        },
-      ],
-    },
-    {
-      title: 'Chat Channel Settings',
-      type: 'SUBMENU',
-      submenu: [
-        {
-          title: 'Say',
-          type: 'CHECKBOX',
-          checked: chatSettings.Say,
-          onClick: () => dispatch(setChatSettings({ Say: !chatSettings.Say })),
-        },
-        {
-          title: 'Emote',
-          type: 'CHECKBOX',
-          checked: chatSettings.Emote,
-          onClick: () => dispatch(setChatSettings({ Emote: !chatSettings.Emote })),
-        },
-        {
-          type: 'SEPARATOR',
-        },
-        {
-          title: 'Shout',
-          type: 'CHECKBOX',
-          checked: chatSettings.Shout,
-          onClick: () => dispatch(setChatSettings({ Shout: !chatSettings.Shout })),
-        },
-        {
-          title: 'Yell',
-          type: 'CHECKBOX',
-          checked: chatSettings.Yell,
-          onClick: () => dispatch(setChatSettings({ Yell: !chatSettings.Yell })),
-        },
-      ],
-    },
-    {
-      type: 'SEPARATOR',
-    },
-    {
-      title: 'Clear Message History',
-      type: 'ACTION',
-    },
-  ];
+  const menuItems: MenuItemConfig[] = [];
+  if (contextType === 'PLAYER') {
+    menuItems.push(
+      {
+        title: 'Player Name',
+        type: 'LABEL',
+      },
+      {
+        type: 'SEPARATOR',
+      },
+      {
+        title: 'Set Name Color',
+        type: 'ACTION',
+        onClick: () => onClose,
+      },
+      {
+        title: 'Add to Ignore List',
+        type: 'ACTION',
+        onClick: () => onClose,
+      },
+    );
+  } else {
+    menuItems.push(
+      {
+        title: 'Listener Mode',
+        type: 'CHECKBOX',
+        checked: listenerMode,
+        onClick: () => dispatch(setListenerMode(!listenerMode)),
+      },
+      {
+        type: 'SEPARATOR',
+      },
+      {
+        title: 'Name Color Strategy',
+        type: 'SUBMENU',
+        submenu: [
+          {
+            title: 'Custom',
+            type: 'CHECKBOX',
+            checked: nameColorMode === 'CUSTOM',
+            onClick: () => dispatch(setNameColorMode('CUSTOM')),
+          },
+          {
+            title: 'Random',
+            type: 'CHECKBOX',
+            checked: nameColorMode === 'RANDOM',
+            onClick: () => dispatch(setNameColorMode('RANDOM')),
+          },
+          {
+            title: 'Job-Based',
+            type: 'CHECKBOX',
+            checked: nameColorMode === 'JOB',
+            onClick: () => dispatch(setNameColorMode('JOB')),
+          },
+        ],
+      },
+      {
+        title: 'Chat Channel Settings',
+        type: 'SUBMENU',
+        submenu: [
+          {
+            title: 'Say',
+            type: 'CHECKBOX',
+            checked: chatSettings.Say,
+            onClick: () => dispatch(setChatSettings({ Say: !chatSettings.Say })),
+          },
+          {
+            title: 'Emote',
+            type: 'CHECKBOX',
+            checked: chatSettings.Emote,
+            onClick: () => dispatch(setChatSettings({ Emote: !chatSettings.Emote })),
+          },
+          {
+            type: 'SEPARATOR',
+          },
+          {
+            title: 'Shout',
+            type: 'CHECKBOX',
+            checked: chatSettings.Shout,
+            onClick: () => dispatch(setChatSettings({ Shout: !chatSettings.Shout })),
+          },
+          {
+            title: 'Yell',
+            type: 'CHECKBOX',
+            checked: chatSettings.Yell,
+            onClick: () => dispatch(setChatSettings({ Yell: !chatSettings.Yell })),
+          },
+        ],
+      },
+      {
+        type: 'SEPARATOR',
+      },
+      {
+        title: 'Clear Message History',
+        type: 'ACTION',
+      },
+    );
+  }
 
   // menu items
   useEffect(() => {
@@ -291,15 +333,22 @@ const ContextMenu = ({
     let height = 8; // padding
     for (let i = 0; i < menuItems.length; i++) {
       const menuItem = menuItems[i];
-      if (menuItem.type !== 'SEPARATOR') {
+      if (menuItem.type === 'SEPARATOR') {
+        height += 1;
+      } else if (menuItem.type === 'LABEL') {
+        // text width + padding (both sides) + border
+        const titleWidth = GetTextWidth(menuItem.title, GetCanvasFont()) + 48 + 2;
+        if (titleWidth > max) {
+          max = titleWidth;
+        }
+        height += 12 + 4; // line height + padding
+      } else {
         // text width + padding (both sides) + border
         const titleWidth = GetTextWidth(menuItem.title, GetCanvasFont()) + 48 + 2;
         if (titleWidth > max) {
           max = titleWidth;
         }
         height += 20 + 8; // line height + padding
-      } else {
-        height += 1;
       }
       height += 4; // gap
     }
@@ -314,10 +363,10 @@ const ContextMenu = ({
         onClose();
       }
     };
-    window.addEventListener('blur', onClose);
+    //window.addEventListener('blur', onClose);
     window.addEventListener('mousedown', handleClick);
     return () => {
-      window.removeEventListener('blur', onClose);
+      //window.removeEventListener('blur', onClose);
       window.removeEventListener('mousedown', handleClick);
     };
   }, []);
