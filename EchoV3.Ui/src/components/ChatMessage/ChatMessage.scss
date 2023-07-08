@@ -16,14 +16,15 @@
     .quoted-span {
       color: $ChatColor-Say;
     }
+    .ooc-span {
+      color: $ChatColor-System;
+    }
   }
   &.msgtype-say {
     > p {
       color: $ChatColor-Say;
-      &.quote-highlight {
-        &.emote-mode {
-          color: $ChatColor-Emote;
-        }
+      &.emote-mode {
+        color: $ChatColor-Emote;
       }
     }
   }

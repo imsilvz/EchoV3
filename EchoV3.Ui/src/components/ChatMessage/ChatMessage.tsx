@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 // react
 import React from 'react';
 
@@ -7,7 +8,7 @@ import * as ipc from '../../types/ipc';
 // local
 import './ChatMessage.scss';
 import { GetNameColor } from './Utility/NameColorization';
-import { QuoteHighlight } from './Utility/QuoteHighlight';
+import { RoleplayHighlight } from './Utility/RoleplayHighlight';
 
 interface ChatMessageProps {
   message: ipc.ChatPayload;
@@ -16,17 +17,18 @@ interface ChatMessageProps {
 interface MessageSetting {
   CSSClassName: string;
   ColoredNames: boolean;
-  HighlightQuotes: boolean;
+  RoleplayHighlight: boolean;
   FormatSender?: (messageData: ipc.ChatPayload) => React.ReactNode;
   FormatMessage?: (messageData: ipc.ChatPayload) => React.ReactNode;
   Parse?: (messageData: ipc.ChatPayload) => React.ReactNode;
+  GetMessageKey?: (messageData: ipc.ChatPayload) => string;
 }
 
-const MessageTypeSettings: { [key: string]: MessageSetting } = {
+export const MessageTypeSettings: { [key: string]: MessageSetting } = {
   Default: {
     CSSClassName: 'msgtype-say',
     ColoredNames: false,
-    HighlightQuotes: false,
+    RoleplayHighlight: false,
     FormatSender: function (messageData) {
       let nameClass;
       return this.ColoredNames ? (
@@ -41,55 +43,64 @@ const MessageTypeSettings: { [key: string]: MessageSetting } = {
       );
     },
     FormatMessage: function (messageData) {
-      if (this.HighlightQuotes) {
-        return QuoteHighlight(messageData.message);
+      const msgKey = this.GetMessageKey!(messageData);
+      if (this.RoleplayHighlight) {
+        return RoleplayHighlight(msgKey, messageData.message);
       }
       return <>{messageData.message}</>;
     },
     Parse: function (messageData) {
       const defaultSettings = MessageTypeSettings['Default'];
       return (
-        <p className={this.HighlightQuotes ? 'quote-highlight' : undefined}>
-          {this.FormatSender
-            ? this.FormatSender(messageData)
-            : (
-                defaultSettings.FormatSender as (
-                  messageData: ipc.ChatPayload,
-                ) => React.ReactNode
-              )(messageData)}
-          {this.FormatMessage
-            ? this.FormatMessage(messageData)
-            : (
-                defaultSettings.FormatMessage as (
-                  messageData: ipc.ChatPayload,
-                ) => React.ReactNode
-              )(messageData)}
+        <p className={this.RoleplayHighlight ? 'quote-highlight' : undefined}>
+          <span data-testid="chat-message-sender">
+            {this.FormatSender
+              ? this.FormatSender(messageData)
+              : (
+                  defaultSettings.FormatSender as (
+                    messageData: ipc.ChatPayload,
+                  ) => React.ReactNode
+                )(messageData)}
+          </span>
+          <span data-testid="chat-message-content">
+            {this.FormatMessage
+              ? this.FormatMessage(messageData)
+              : (
+                  defaultSettings.FormatMessage as (
+                    messageData: ipc.ChatPayload,
+                  ) => React.ReactNode
+                )(messageData)}
+          </span>
         </p>
       );
+    },
+    GetMessageKey: function (messageData) {
+      return `${messageData.senderId}-${messageData.timestamp}`;
     },
   },
   Say: {
     CSSClassName: 'msgtype-say',
     ColoredNames: true,
-    HighlightQuotes: true,
+    RoleplayHighlight: true,
     Parse: function (messageData) {
-      let quoteHighlight;
-      if (this.HighlightQuotes) {
-        const temp = QuoteHighlight(messageData.message);
+      const msgKey = this.GetMessageKey!(messageData);
+      let roleplayHighlight;
+      if (this.RoleplayHighlight) {
+        const temp = RoleplayHighlight(msgKey, messageData.message);
         if (temp.length > 1) {
-          quoteHighlight = temp;
+          roleplayHighlight = temp;
         }
       }
       return (
-        <p
-          className={`${this.HighlightQuotes ? 'quote-highlight ' : ''}${
-            quoteHighlight !== undefined ? 'emote-mode' : ''
-          }`}
-        >
-          {this.FormatSender!(messageData)}
-          {quoteHighlight !== undefined
-            ? quoteHighlight
-            : this.FormatMessage!(messageData)}
+        <p className={roleplayHighlight !== undefined ? 'emote-mode' : undefined}>
+          <span data-testid="chat-message-sender">
+            {this.FormatSender!(messageData)}
+          </span>
+          <span data-testid="chat-message-content">
+            {roleplayHighlight !== undefined
+              ? roleplayHighlight
+              : this.FormatMessage!(messageData)}
+          </span>
         </p>
       );
     },
@@ -97,12 +108,12 @@ const MessageTypeSettings: { [key: string]: MessageSetting } = {
   Shout: {
     CSSClassName: 'msgtype-shout',
     ColoredNames: false,
-    HighlightQuotes: false,
+    RoleplayHighlight: false,
   },
   CustomEmote: {
     CSSClassName: 'msgtype-emote',
     ColoredNames: true,
-    HighlightQuotes: true,
+    RoleplayHighlight: true,
     FormatSender: function (messageData) {
       let nameClass;
       return this.ColoredNames ? (
@@ -137,7 +148,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
     msgClassName = `chat-message ${messageSettings.CSSClassName}`;
   }
   return (
-    <div className={msgClassName}>
+    <div className={msgClassName} data-testid="chat-message">
       {messageSettings?.Parse
         ? messageSettings?.Parse(message)
         : (
