@@ -1,11 +1,11 @@
 // types
-import { MessageTypeSettings } from '../components/ChatMessage/ChatMessage.tsx';
+import { MessageTypeSettings } from '../components/ChatMessage/ChatMessage';
 import type {
   WebViewEvent,
   WebViewEventListener,
   WebViewEventListenerObject,
-} from '../types/global.d.ts';
-import * as ipc from '../types/ipc';
+} from '../types/global.js';
+import * as ipc from '../types/ipc.js';
 
 const CallbackMap = new Map<
   string,
@@ -77,7 +77,7 @@ export const MockWebview2IfUndefined = () => {
       MockEvent('message', {
         data: ipcData,
       });
-    }, 1000);
+    }, 100);
   }
 };
 
