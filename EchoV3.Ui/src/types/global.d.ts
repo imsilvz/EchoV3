@@ -1,5 +1,3 @@
-export {};
-
 interface WebViewEvent extends Event {
   data: unknown;
 }
@@ -35,3 +33,10 @@ declare global {
     };
   }
 }
+
+export {
+  WebViewEvent,
+  WebViewEventListener,
+  WebViewEventListenerObject,
+  WebViewEventListenerOrEventListenerObject,
+};

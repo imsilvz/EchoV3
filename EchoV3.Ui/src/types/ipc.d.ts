@@ -1,6 +1,6 @@
 export interface IpcPayload {
   echoType: string;
-  timestamp: Date;
+  timestamp: string;
   sourceActorId: number;
   destinationActorId: number;
 }
