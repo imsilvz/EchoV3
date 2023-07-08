@@ -3,58 +3,75 @@
 .chat-message {
   padding: 0.125rem 0 0.125rem 0;
   user-select: none;
-  > p {
+
+  >p {
     margin: 0;
     font-family: Georgia, serif;
     font-size: 18px;
     font-weight: 400;
     text-shadow:
-      -1px -1px 0 rgba(0, 0, 0, 0.7),  
+      -1px -1px 0 rgba(0, 0, 0, 0.7),
       1px -1px 0 rgba(0, 0, 0, 0.7),
       -1px 1px 0 rgba(0, 0, 0, 0.7),
       1px 1px 0 rgba(0, 0, 0, 0.7);
+
     .quoted-span {
       color: $ChatColor-Say;
     }
+
     .ooc-span {
       color: $ChatColor-System;
     }
+
+    >.chat-message-sender {
+      &:hover {
+        background-color: color-mix(in oklab, currentColor, transparent 80%)
+      }
+    }
   }
+
   &.msgtype-say {
-    > p {
+    >p {
       color: $ChatColor-Say;
+
       &.emote-mode {
         color: $ChatColor-Emote;
       }
     }
   }
+
   &.msgtype-shout {
-    > p {
+    >p {
       color: $ChatColor-Shout;
     }
   }
+
   &.msgtype-yell {
-    > p {
+    >p {
       color: $ChatColor-Shout;
     }
   }
+
   &.msgtype-party {
-    > p {
+    >p {
       color: $ChatColor-Party;
     }
   }
+
   &.msgtype-cwls {
-    > p {
+    >p {
       color: $ChatColor-CWLS;
     }
   }
+
   &.msgtype-yell {
-    > p {
+    >p {
       color: $ChatColor-Yell;
     }
   }
+
   &.msgtype-emote {
-    > p {
+    >p {
       color: $ChatColor-Emote;
     }
   }

@@ -50,7 +50,7 @@ const App = () => {
   useEffect(() => {
     window.chrome.webview.addEventListener('message', (arg) => {
       const payload = arg.data as ipc.IpcPayload;
-      console.log(arg.data);
+      // console.log(arg.data);
       switch (payload.echoType) {
         case 'Chat':
           setMessageList((currList) => [...currList, payload as ipc.ChatPayload]);
@@ -67,6 +67,11 @@ const App = () => {
   // context menu
   useEffect(() => {
     const contextMenuHandler = (e: MouseEvent) => {
+      const eventTarget = e.target as HTMLElement;
+      const contextSenderId = eventTarget.getAttribute('data-senderid');
+      if (contextSenderId !== null) {
+        console.log('Sender ID', contextSenderId);
+      }
       setShowContextMenu({
         show: true,
         xPos: e.clientX,

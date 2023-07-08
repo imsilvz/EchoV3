@@ -30,16 +30,29 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
     ColoredNames: false,
     RoleplayHighlight: false,
     FormatSender: function (messageData) {
-      let nameClass;
       return this.ColoredNames ? (
         <>
-          <span className={nameClass} style={{ color: GetNameColor(messageData) }}>
+          <span
+            className="chat-message-sender"
+            data-senderid={messageData.senderId}
+            data-testid="chat-message-sender"
+            style={{ color: GetNameColor(messageData) }}
+          >
             {messageData.senderName}
           </span>
           :{' '}
         </>
       ) : (
-        <>{messageData.senderName}: </>
+        <>
+          <span
+            className="chat-message-sender"
+            data-senderid={messageData.senderId}
+            data-testid="chat-message-sender"
+          >
+            {messageData.senderName}
+          </span>
+          :{' '}
+        </>
       );
     },
     FormatMessage: function (messageData) {
@@ -53,16 +66,14 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
       const defaultSettings = MessageTypeSettings['Default'];
       return (
         <p className={this.RoleplayHighlight ? 'quote-highlight' : undefined}>
-          <span data-testid="chat-message-sender">
-            {this.FormatSender
-              ? this.FormatSender(messageData)
-              : (
-                  defaultSettings.FormatSender as (
-                    messageData: ipc.ChatPayload,
-                  ) => React.ReactNode
-                )(messageData)}
-          </span>
-          <span data-testid="chat-message-content">
+          {this.FormatSender
+            ? this.FormatSender(messageData)
+            : (
+                defaultSettings.FormatSender as (
+                  messageData: ipc.ChatPayload,
+                ) => React.ReactNode
+              )(messageData)}
+          <span className="chat-message-content" data-testid="chat-message-content">
             {this.FormatMessage
               ? this.FormatMessage(messageData)
               : (
@@ -93,10 +104,8 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
       }
       return (
         <p className={roleplayHighlight !== undefined ? 'emote-mode' : undefined}>
-          <span data-testid="chat-message-sender">
-            {this.FormatSender!(messageData)}
-          </span>
-          <span data-testid="chat-message-content">
+          {this.FormatSender!(messageData)}
+          <span className="chat-message-content" data-testid="chat-message-content">
             {roleplayHighlight !== undefined
               ? roleplayHighlight
               : this.FormatMessage!(messageData)}
@@ -115,15 +124,27 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
     ColoredNames: true,
     RoleplayHighlight: true,
     FormatSender: function (messageData) {
-      let nameClass;
       return this.ColoredNames ? (
         <>
-          <span className={nameClass} style={{ color: GetNameColor(messageData) }}>
-            {messageData.senderName}{' '}
-          </span>
+          <span
+            className="chat-message-sender"
+            data-senderid={messageData.senderId}
+            data-testid="chat-message-sender"
+            style={{ color: GetNameColor(messageData) }}
+          >
+            {messageData.senderName}
+          </span>{' '}
         </>
       ) : (
-        <>{messageData.senderName} </>
+        <>
+          <span
+            className="chat-message-sender"
+            data-senderid={messageData.senderId}
+            data-testid="chat-message-sender"
+          >
+            {messageData.senderName}
+          </span>{' '}
+        </>
       );
     },
   },
