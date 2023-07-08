@@ -16,9 +16,10 @@ import {
 import './ContextMenu.scss';
 import { GetCanvasFont, GetTextWidth } from '../../utility/canvas';
 
-type ContextType = 'PLAYER';
+export type ContextType = null | 'PLAYER';
 interface ContextMenuProps {
-  contextType?: ContextType;
+  contextType: ContextType;
+  contextData?: unknown;
   xPos: number;
   yPos: number;
   onClose: () => void;
@@ -178,7 +179,13 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
   );
 };
 
-const ContextMenu = ({ contextType, xPos, yPos, onClose }: ContextMenuProps) => {
+const ContextMenu = ({
+  contextType,
+  contextData,
+  xPos,
+  yPos,
+  onClose,
+}: ContextMenuProps) => {
   const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
   const listenerMode = useAppSelector(selectListenerMode);

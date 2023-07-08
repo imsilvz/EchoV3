@@ -16,7 +16,7 @@ import * as ipc from '../types/ipc';
 // local
 import './App.scss';
 import ChatMessage from './ChatMessage/ChatMessage';
-import ContextMenu from './ContextMenu/ContextMenu';
+import ContextMenu, { ContextType } from './ContextMenu/ContextMenu';
 
 const App = () => {
   const chatSettings = useAppSelector(selectChatSettings);
@@ -25,10 +25,13 @@ const App = () => {
   const [messageList, setMessageList] = useState<ipc.ChatPayload[]>([]);
   const [showContextMenu, setShowContextMenu] = useState<{
     show: boolean;
+    contextType: ContextType;
+    contextData?: unknown;
     xPos: number;
     yPos: number;
   }>({
     show: false,
+    contextType: null,
     xPos: 0,
     yPos: 0,
   });
@@ -68,15 +71,25 @@ const App = () => {
   useEffect(() => {
     const contextMenuHandler = (e: MouseEvent) => {
       const eventTarget = e.target as HTMLElement;
-      const contextSenderId = eventTarget.getAttribute('data-senderid');
-      if (contextSenderId !== null) {
-        console.log('Sender ID', contextSenderId);
+      const contextPlayerId = eventTarget.getAttribute('data-context-playerid');
+      if (contextPlayerId !== null) {
+        console.log('Player ID', contextPlayerId);
+        setShowContextMenu({
+          show: true,
+          contextType: 'PLAYER',
+          contextData: contextPlayerId,
+          xPos: e.clientX,
+          yPos: e.clientY,
+        });
+      } else {
+        setShowContextMenu({
+          show: true,
+          contextType: null,
+          contextData: undefined,
+          xPos: e.clientX,
+          yPos: e.clientY,
+        });
       }
-      setShowContextMenu({
-        show: true,
-        xPos: e.clientX,
-        yPos: e.clientY,
-      });
       e.preventDefault();
     };
 
@@ -103,6 +116,8 @@ const App = () => {
       </div>
       {showContextMenu.show && (
         <ContextMenu
+          contextType={showContextMenu.contextType}
+          contextData={showContextMenu.contextData}
           xPos={showContextMenu.xPos}
           yPos={showContextMenu.yPos}
           onClose={() =>

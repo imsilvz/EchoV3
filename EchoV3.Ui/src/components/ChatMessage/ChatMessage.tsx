@@ -34,7 +34,7 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
         <>
           <span
             className="chat-message-sender"
-            data-senderid={messageData.senderId}
+            data-context-playerid={messageData.senderId}
             data-testid="chat-message-sender"
             style={{ color: GetNameColor(messageData) }}
           >
@@ -46,7 +46,7 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
         <>
           <span
             className="chat-message-sender"
-            data-senderid={messageData.senderId}
+            data-context-playerid={messageData.senderId}
             data-testid="chat-message-sender"
           >
             {messageData.senderName}
@@ -128,7 +128,7 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
         <>
           <span
             className="chat-message-sender"
-            data-senderid={messageData.senderId}
+            data-context-playerid={messageData.senderId}
             data-testid="chat-message-sender"
             style={{ color: GetNameColor(messageData) }}
           >
@@ -139,7 +139,7 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
         <>
           <span
             className="chat-message-sender"
-            data-senderid={messageData.senderId}
+            data-context-playerid={messageData.senderId}
             data-testid="chat-message-sender"
           >
             {messageData.senderName}
