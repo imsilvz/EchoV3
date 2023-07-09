@@ -10,8 +10,8 @@
     Height="450" Width="800"
     WindowStyle="None"
     ResizeMode="CanResize"
-    Background="#80000000"
     AllowsTransparency="True"
+    Background="#80000000"
     Deactivated="MainWindow_Deactivated"
     MouseLeftButtonDown="MainWindow_MouseLeftButtonDown"
 >
@@ -70,6 +70,7 @@
                 <wv2:WebView2 
                     Name="webView"
                     DefaultBackgroundColor="Transparent"
+                    Visibility="Hidden"
                 />
             </DockPanel>
 

@@ -22,8 +22,6 @@ export const MockWebview2IfUndefined = () => {
           listener: WebViewEventListener | WebViewEventListenerObject,
           options?: boolean | AddEventListenerOptions | undefined,
         ): void {
-          //throw new Error('Function not implemented.');
-          console.log(type, listener);
           CallbackMap.set(type, listener);
         },
         postMessage: function (message: string): void {

@@ -1,8 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
+import actorReducer from './reducers/actorReducer';
 import settingsReducer from './reducers/settingsReducer';
 
 const store = configureStore({
   reducer: {
+    actors: actorReducer,
     settings: settingsReducer,
   },
 });

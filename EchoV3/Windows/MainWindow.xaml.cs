@@ -26,18 +26,14 @@ namespace EchoV3.Windows
         public MainWindow(FFXIVEventService eventService)
         {
             InitializeComponent();
-            ChatEvent.OnEventFired += OnChatEvent;
-            ChatHandlerEvent.OnEventFired += OnChatHandlerEvent;
-            ClientTriggerEvent.OnEventFired += OnClientTriggerEvent;
-            webView.NavigationCompleted += WebView_NavigationCompleted;
-            this.Topmost = true;
+            InitializeAsync();
         }
 
-        protected override async void OnContentRendered(EventArgs e)
+        async void InitializeAsync()
         {
-            base.OnContentRendered(e);
-
             // webview init
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            string app = LoadResource("EchoV3.Resources.Ui.index.html");
             var env = await CoreWebView2Environment.CreateAsync(
                 userDataFolder: Path.Combine(
                     Path.GetTempPath(),
@@ -45,16 +41,17 @@ namespace EchoV3.Windows
                 )
             );
             await webView.EnsureCoreWebView2Async(env);
-
-            string app = LoadResource("EchoV3.Resources.Ui.index.html");
             webView.NavigateToString(app);
-            webView.CoreWebView2.OpenDevToolsWindow();
         }
 
-        private void WebView_NavigationCompleted(object? sender, EventArgs e)
+        protected override async void OnContentRendered(EventArgs e)
         {
-            //string script = LoadResource("EchoV3.Resources.Ui.index.js");
-            //webView.ExecuteScriptAsync(script);
+            base.OnContentRendered(e);
+
+            webView.Visibility = Visibility.Visible;
+            ChatEvent.OnEventFired += OnChatEvent;
+            ChatHandlerEvent.OnEventFired += OnChatHandlerEvent;
+            ClientTriggerEvent.OnEventFired += OnClientTriggerEvent;
         }
 
         private void CloseButton_OnClick(object sender, RoutedEventArgs e)

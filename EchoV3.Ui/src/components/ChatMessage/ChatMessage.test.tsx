@@ -2,23 +2,27 @@ import React from 'react';
 import { assert, describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ChatMessage, { MessageTypeSettings } from './ChatMessage';
+import { Provider } from 'react-redux';
+import store from '../../redux/store';
 
 describe('Chat Message Rendering', () => {
   it('basic message test', () => {
     render(
-      <ChatMessage
-        message={{
-          echoType: 'Chat',
-          timestamp: new Date(Date.now()).toISOString(),
-          sourceActorId: 1,
-          destinationActorId: 1,
-          messageType: 'Say',
-          senderId: 2,
-          senderName: 'Joe Test',
-          senderActor: undefined,
-          message: 'This is a test message.',
-        }}
-      />,
+      <Provider store={store}>
+        <ChatMessage
+          message={{
+            echoType: 'Chat',
+            timestamp: new Date(Date.now()).toISOString(),
+            sourceActorId: 1,
+            destinationActorId: 1,
+            messageType: 'Say',
+            senderId: 2,
+            senderName: 'Joe Test',
+            senderActor: undefined,
+            message: 'This is a test message.',
+          }}
+        />
+      </Provider>,
     );
 
     const chatMessage = screen.queryByTestId('chat-message');
@@ -31,7 +35,7 @@ describe('Chat Message Rendering', () => {
     expect(messageContent).toBeInTheDocument();
 
     // check contents
-    expect(messageSender).toHaveTextContent('Joe Test:');
+    expect(messageSender).toHaveTextContent('Joe Test');
     expect(messageContent).toHaveTextContent('This is a test message.');
   });
 
@@ -40,19 +44,21 @@ describe('Chat Message Rendering', () => {
     it(`messagetype test: ${key}`, () => {
       const typeSettings = MessageTypeSettings[key];
       render(
-        <ChatMessage
-          message={{
-            echoType: 'Chat',
-            timestamp: new Date(Date.now()).toISOString(),
-            sourceActorId: 1,
-            destinationActorId: 1,
-            messageType: key,
-            senderId: 2,
-            senderName: 'Joe Test',
-            senderActor: undefined,
-            message: 'This is "a test" message.',
-          }}
-        />,
+        <Provider store={store}>
+          <ChatMessage
+            message={{
+              echoType: 'Chat',
+              timestamp: new Date(Date.now()).toISOString(),
+              sourceActorId: 1,
+              destinationActorId: 1,
+              messageType: key,
+              senderId: 2,
+              senderName: 'Joe Test',
+              senderActor: undefined,
+              message: 'This is "a test" message.',
+            }}
+          />
+        </Provider>,
       );
 
       const chatMessage = screen.queryByTestId('chat-message');

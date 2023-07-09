@@ -1,3 +1,6 @@
+// redux
+import store from '../../../redux/store';
+
 // types
 import * as ipc from '../../../types/ipc';
 
@@ -7,11 +10,20 @@ import { JobColor } from '../../../constants';
 let LastUserId = 0;
 const UserIdMap = new Map<number, { color: string }>();
 export const GetNameColor = (messageData: ipc.ChatPayload) => {
-  return ColorStrategies['random'](messageData);
+  const state = store.getState();
+  const strategy =
+    ColorStrategies[state.settings.nameColorMode as keyof typeof ColorStrategies];
+  const senderData = store.getState().actors.playerDict[messageData.senderId];
+  if (senderData?.playerColor) return senderData.playerColor;
+  if (strategy) return strategy(messageData);
+  return undefined;
 };
 
 const ColorStrategies = {
-  random: (messageData: ipc.ChatPayload) => {
+  CUSTOM: () => {
+    return undefined;
+  },
+  RANDOM: (messageData: ipc.ChatPayload) => {
     const actorData = UserIdMap.get(messageData.senderId);
 
     let actorColor;

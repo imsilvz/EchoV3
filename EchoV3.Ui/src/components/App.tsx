@@ -1,9 +1,9 @@
 // react
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 
 // redux
-import { useAppSelector } from '../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import {
   selectChatSettings,
   selectListenerMode,
@@ -16,19 +16,24 @@ import * as ipc from '../types/ipc';
 // local
 import './App.scss';
 import ChatMessage from './ChatMessage/ChatMessage';
-import ContextMenu from './ContextMenu/ContextMenu';
+import ContextMenu, { ContextType } from './ContextMenu/ContextMenu';
+import { addOrUpdatePlayer } from '../redux/reducers/actorReducer.ts';
 
 const App = () => {
+  const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
   const listenerMode = useAppSelector(selectListenerMode);
   const [currentTargetId, setCurrentTargetId] = useState<number>(-1);
   const [messageList, setMessageList] = useState<ipc.ChatPayload[]>([]);
   const [showContextMenu, setShowContextMenu] = useState<{
     show: boolean;
+    contextType: ContextType;
+    contextData?: unknown;
     xPos: number;
     yPos: number;
   }>({
     show: false,
+    contextType: null,
     xPos: 0,
     yPos: 0,
   });
@@ -50,9 +55,17 @@ const App = () => {
   useEffect(() => {
     window.chrome.webview.addEventListener('message', (arg) => {
       const payload = arg.data as ipc.IpcPayload;
-      console.log(arg.data);
+      // console.log(arg.data);
       switch (payload.echoType) {
         case 'Chat':
+          if ((payload as ipc.ChatPayload).senderName) {
+            dispatch(
+              addOrUpdatePlayer({
+                actorId: (payload as ipc.ChatPayload).senderId,
+                playerName: (payload as ipc.ChatPayload).senderName,
+              }),
+            );
+          }
           setMessageList((currList) => [...currList, payload as ipc.ChatPayload]);
           break;
         case 'LocalTarget':
@@ -67,11 +80,26 @@ const App = () => {
   // context menu
   useEffect(() => {
     const contextMenuHandler = (e: MouseEvent) => {
-      setShowContextMenu({
-        show: true,
-        xPos: e.clientX,
-        yPos: e.clientY,
-      });
+      const eventTarget = e.target as HTMLElement;
+      const contextPlayerId = eventTarget.getAttribute('data-context-playerid');
+      if (contextPlayerId !== null) {
+        console.log('Player ID', contextPlayerId);
+        setShowContextMenu({
+          show: true,
+          contextType: 'PLAYER',
+          contextData: contextPlayerId,
+          xPos: e.clientX,
+          yPos: e.clientY,
+        });
+      } else {
+        setShowContextMenu({
+          show: true,
+          contextType: null,
+          contextData: undefined,
+          xPos: e.clientX,
+          yPos: e.clientY,
+        });
+      }
       e.preventDefault();
     };
 
@@ -79,6 +107,13 @@ const App = () => {
     return () => {
       window.removeEventListener('contextmenu', contextMenuHandler);
     };
+  }, []);
+
+  const closeContextMenu = useCallback(() => {
+    setShowContextMenu((contextMenuData) => ({
+      ...contextMenuData,
+      show: false,
+    }));
   }, []);
 
   // render
@@ -96,18 +131,14 @@ const App = () => {
           initialTopMostItemIndex={currentMessageList.length - 1}
         />
       </div>
-      {showContextMenu.show && (
-        <ContextMenu
-          xPos={showContextMenu.xPos}
-          yPos={showContextMenu.yPos}
-          onClose={() =>
-            setShowContextMenu((contextMenuData) => ({
-              ...contextMenuData,
-              show: false,
-            }))
-          }
-        />
-      )}
+      <ContextMenu
+        show={showContextMenu.show}
+        contextType={showContextMenu.contextType}
+        contextData={showContextMenu.contextData}
+        xPos={showContextMenu.xPos}
+        yPos={showContextMenu.yPos}
+        onClose={closeContextMenu}
+      />
     </>
   );
 };
