@@ -30,6 +30,12 @@
     }
   }
 
+  &.msgtype-default {
+    >p {
+      color: $ChatColor-System;
+    }
+  }
+
   &.msgtype-say {
     >p {
       color: $ChatColor-Say;

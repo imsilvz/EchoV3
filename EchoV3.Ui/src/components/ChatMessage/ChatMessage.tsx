@@ -10,6 +10,7 @@ import './ChatMessage.scss';
 import { GetNameColor } from './Utility/NameColorization';
 import { RoleplayHighlight } from './Utility/RoleplayHighlight';
 import { useAppSelector } from '../../redux/hooks';
+import { selectPlayerDict } from '../../redux/reducers/actorReducer';
 import { selectNameColorMode } from '../../redux/reducers/settingsReducer';
 
 interface ChatMessageProps {
@@ -28,7 +29,7 @@ interface MessageSetting {
 
 export const MessageTypeSettings: { [key: string]: MessageSetting } = {
   Default: {
-    CSSClassName: 'msgtype-say',
+    CSSClassName: 'msgtype-default',
     ColoredNames: false,
     RoleplayHighlight: false,
     FormatSender: function (messageData) {
@@ -165,22 +166,40 @@ for (let i = 0; i < MessageTypeKeys.length; i++) {
 
 const ChatMessage = ({ message }: ChatMessageProps) => {
   const nameColorMode = useAppSelector(selectNameColorMode);
-  const playerActorDict = useAppSelector((state) => state.actors.playerDict);
+  const playerActorDict = useAppSelector(selectPlayerDict);
   const messageSettings = MessageTypeSettings[message.messageType];
+  const playerActor = playerActorDict[message.senderId];
 
   let msgClassName = 'chat-message';
-  if (messageSettings) {
-    msgClassName = `chat-message ${messageSettings.CSSClassName}`;
+  if (playerActor?.ignored) {
+    msgClassName = 'chat-message msgtype-default';
+  } else {
+    if (messageSettings) {
+      msgClassName = `chat-message ${messageSettings.CSSClassName}`;
+    }
   }
   return (
     <div className={msgClassName} data-testid="chat-message">
-      {messageSettings?.Parse
-        ? messageSettings?.Parse(message)
-        : (
-            MessageTypeSettings['Say'].Parse as (
-              messageData: ipc.ChatPayload,
-            ) => React.ReactNode
-          )(message)}
+      {playerActor?.ignored ? (
+        (
+          MessageTypeSettings['Default'].Parse as (
+            messageData: ipc.ChatPayload,
+          ) => React.ReactNode
+        )({
+          ...message,
+          message: '<player ignored>',
+        })
+      ) : (
+        <>
+          {messageSettings?.Parse
+            ? messageSettings?.Parse(message)
+            : (
+                MessageTypeSettings['Say'].Parse as (
+                  messageData: ipc.ChatPayload,
+                ) => React.ReactNode
+              )(message)}
+        </>
+      )}
     </div>
   );
 };
