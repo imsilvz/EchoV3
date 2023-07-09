@@ -10,6 +10,7 @@ import './ChatMessage.scss';
 import { GetNameColor } from './Utility/NameColorization';
 import { RoleplayHighlight } from './Utility/RoleplayHighlight';
 import { useAppSelector } from '../../redux/hooks';
+import { selectNameColorMode } from '../../redux/reducers/settingsReducer';
 
 interface ChatMessageProps {
   message: ipc.ChatPayload;
@@ -163,6 +164,7 @@ for (let i = 0; i < MessageTypeKeys.length; i++) {
 }
 
 const ChatMessage = ({ message }: ChatMessageProps) => {
+  const nameColorMode = useAppSelector(selectNameColorMode);
   const playerActorDict = useAppSelector((state) => state.actors.playerDict);
   const messageSettings = MessageTypeSettings[message.messageType];
 

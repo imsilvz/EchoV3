@@ -33,13 +33,14 @@ interface ContextSubmenuProps {
 
 interface ContextMenuItemProps {
   config: MenuItemConfig;
+  width?: number;
 }
 
 type MenuItemType = 'ACTION' | 'CHECKBOX' | 'LABEL' | 'SEPARATOR' | 'SUBMENU';
 interface GeneralMenuItemConfig {
   title?: string;
   type: MenuItemType;
-  renderCustom?: () => React.ReactNode;
+  renderCustom?: (width?: number) => React.ReactNode;
 }
 
 interface ActionMenuItemConfig extends GeneralMenuItemConfig {
@@ -77,7 +78,7 @@ type MenuItemConfig =
   | SeparatorMenuItemConfig
   | SubmenuMenuItemConfig;
 
-const ContextMenuItem = ({ config }: ContextMenuItemProps) => {
+const ContextMenuItem = ({ config, width }: ContextMenuItemProps) => {
   switch (config.type) {
     case 'CHECKBOX':
       return (
@@ -102,7 +103,7 @@ const ContextMenuItem = ({ config }: ContextMenuItemProps) => {
       break;
   }
   if (config.renderCustom) {
-    return config.renderCustom();
+    return config.renderCustom(width);
   }
   return (
     <div className="context-menu-item">
@@ -128,10 +129,10 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
       }
     };
     if (showSubmenu) {
-      window.addEventListener('mousemove', handleClose);
+      //window.addEventListener('mousemove', handleClose);
     }
     return () => {
-      window.removeEventListener('mousemove', handleClose);
+      //window.removeEventListener('mousemove', handleClose);
     };
   }, [showSubmenu]);
 
@@ -196,7 +197,11 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
       {showSubmenu && (
         <div ref={submenuRef} className="context-menu" style={submenuPositionStyle}>
           {config.submenu.map((item, idx) => (
-            <ContextMenuItem key={`contextmenu-${idx}`} config={item} />
+            <ContextMenuItem
+              key={`contextmenu-${idx}`}
+              config={item}
+              width={contextWidth}
+            />
           ))}
         </div>
       )}
@@ -267,26 +272,39 @@ const ContextMenu = ({
         type: 'SEPARATOR',
       },
       {
-        title: 'Set Name Color',
-        type: 'ACTION',
-        onClick: () => onClose,
-        renderCustom: () => {
-          return (
-            <div className="context-menu-colorinput">
-              <input
-                type="color"
-                //onClick={onClose}
-                onChange={playerColorHandler}
-                value={playerActor?.playerColor || '#ffffff'}
-              />
-              <span className="colorinput-label">Set Name Color</span>
-              <span
-                className="colorinput-preview"
-                style={{ backgroundColor: playerActor?.playerColor || '#ffffff' }}
-              />
-            </div>
-          );
-        },
+        title: 'Name Color',
+        type: 'SUBMENU',
+        submenu: [
+          {
+            title: 'Set Name Color',
+            type: 'ACTION',
+            onClick: () => onClose,
+            renderCustom: (width) => {
+              return (
+                <div
+                  className="context-menu-colorinput"
+                  style={{
+                    minWidth: width !== undefined ? width : undefined,
+                  }}
+                >
+                  <input
+                    type="color"
+                    onClick={onClose}
+                    onChange={playerColorHandler}
+                    value={playerActor?.playerColor || '#ffffff'}
+                  />
+                  <span className="colorinput-label">Set Name Color</span>
+                  <span
+                    className="colorinput-preview"
+                    style={{
+                      backgroundColor: playerActor?.playerColor || '#ffffff',
+                    }}
+                  />
+                </div>
+              );
+            },
+          },
+        ],
       },
       {
         title: 'Add to Ignore List',
@@ -408,10 +426,10 @@ const ContextMenu = ({
         onClose();
       }
     };
-    window.addEventListener('blur', onClose);
+    //window.addEventListener('blur', onClose);
     window.addEventListener('mousedown', handleClick);
     return () => {
-      window.removeEventListener('blur', onClose);
+      //window.removeEventListener('blur', onClose);
       window.removeEventListener('mousedown', handleClick);
     };
   }, []);
