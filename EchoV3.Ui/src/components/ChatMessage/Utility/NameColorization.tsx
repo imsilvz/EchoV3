@@ -11,6 +11,9 @@ export const GetNameColor = (messageData: ipc.ChatPayload) => {
 };
 
 const ColorStrategies = {
+  custom: (messageData: ipc.ChatPayload) => {
+    return undefined;
+  },
   random: (messageData: ipc.ChatPayload) => {
     const actorData = UserIdMap.get(messageData.senderId);
 

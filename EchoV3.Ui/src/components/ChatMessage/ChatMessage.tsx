@@ -9,6 +9,7 @@ import * as ipc from '../../types/ipc';
 import './ChatMessage.scss';
 import { GetNameColor } from './Utility/NameColorization';
 import { RoleplayHighlight } from './Utility/RoleplayHighlight';
+import { useAppSelector } from '../../redux/hooks';
 
 interface ChatMessageProps {
   message: ipc.ChatPayload;
@@ -36,7 +37,7 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
             className="chat-message-sender"
             data-context-playerid={messageData.senderId}
             data-testid="chat-message-sender"
-            style={{ color: GetNameColor(messageData) }}
+            style={{ color: GetNameColor(messageData) || 'inherit' }}
           >
             {messageData.senderName}
           </span>
@@ -130,7 +131,7 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
             className="chat-message-sender"
             data-context-playerid={messageData.senderId}
             data-testid="chat-message-sender"
-            style={{ color: GetNameColor(messageData) }}
+            style={{ color: GetNameColor(messageData) || 'inherit' }}
           >
             {messageData.senderName}
           </span>{' '}
@@ -162,6 +163,7 @@ for (let i = 0; i < MessageTypeKeys.length; i++) {
 }
 
 const ChatMessage = ({ message }: ChatMessageProps) => {
+  const playerActorDict = useAppSelector((state) => state.actors.playerDict);
   const messageSettings = MessageTypeSettings[message.messageType];
 
   let msgClassName = 'chat-message';
