@@ -17,6 +17,10 @@ jobs:
         node-version: [ '18.x' ]
 
     steps:
+      - name: Exit if not on production branch
+        if: endsWith(github.event.base_ref, 'master') == false
+        run: exit -1
+
       - uses: actions/checkout@v3
         with:
           path: ./source/EchoV3
@@ -64,10 +68,6 @@ jobs:
       - name: Publish
         working-directory: EchoV3
         run: dotnet publish EchoV3.csproj --configuration Release --no-restore
-
-      - name: Exit if not on production branch
-        if: endsWith(github.event.base_ref, 'master') == false
-        run: exit -1
 
       - run: Get-ChildItem -Path ./EchoV3/bin/Release/net7.0-windows/win-x64/publish/
 
