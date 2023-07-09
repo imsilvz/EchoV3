@@ -17,12 +17,16 @@ import * as ipc from '../types/ipc';
 import './App.scss';
 import ChatMessage from './ChatMessage/ChatMessage';
 import ContextMenu, { ContextType } from './ContextMenu/ContextMenu';
-import { addOrUpdatePlayer } from '../redux/reducers/actorReducer.ts';
+import {
+  addOrUpdatePlayer,
+  selectPlayerDict,
+} from '../redux/reducers/actorReducer.ts';
 
 const App = () => {
   const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
   const listenerMode = useAppSelector(selectListenerMode);
+  const playerDict = useAppSelector(selectPlayerDict);
   const [currentTargetId, setCurrentTargetId] = useState<number>(-1);
   const [messageList, setMessageList] = useState<ipc.ChatPayload[]>([]);
   const [showContextMenu, setShowContextMenu] = useState<{
@@ -38,18 +42,22 @@ const App = () => {
     yPos: 0,
   });
 
-  // listener mode
-  const targetMessageList = useMemo(() => {
-    return messageList.filter((msg) => msg.senderId === currentTargetId);
-  }, [currentTargetId, messageList]);
-
-  const currentMessageList = useMemo(
-    () =>
-      (listenerMode ? targetMessageList : messageList).filter((msg) => {
-        return chatSettings[msg.messageType as keyof typeof chatSettings] || false;
-      }),
-    [chatSettings, listenerMode, messageList, targetMessageList],
-  );
+  const currentMessageList = useMemo(() => {
+    // Listener Mode
+    const initialList = listenerMode
+      ? messageList.filter((msg) => msg.senderId === currentTargetId)
+      : messageList;
+    // Apply Channel Filters
+    const settingsApplied = initialList.filter((msg) => {
+      return chatSettings[msg.messageType as keyof typeof chatSettings] || false;
+    });
+    // Handle Ignore List
+    const ignoreListApplied = settingsApplied.filter((msg) => {
+      const senderData = playerDict[msg.senderId];
+      return !senderData?.ignored;
+    });
+    return ignoreListApplied;
+  }, [currentTargetId, chatSettings, listenerMode, messageList, playerDict]);
 
   // event listener hook!
   useEffect(() => {
@@ -129,6 +137,7 @@ const App = () => {
           }}
           totalCount={currentMessageList.length}
           initialTopMostItemIndex={currentMessageList.length - 1}
+          increaseViewportBy={{ bottom: 300, top: 300 }}
         />
       </div>
       <ContextMenu

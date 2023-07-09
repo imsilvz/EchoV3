@@ -15,7 +15,10 @@ import {
 // local
 import './ContextMenu.scss';
 import { GetCanvasFont, GetTextWidth } from '../../utility/canvas';
-import { addOrUpdatePlayer } from '../../redux/reducers/actorReducer';
+import {
+  addOrUpdatePlayer,
+  selectPlayerDict,
+} from '../../redux/reducers/actorReducer';
 
 export type ContextType = null | 'PLAYER';
 interface ContextMenuProps {
@@ -269,7 +272,7 @@ const ContextMenu = ({
   const chatSettings = useAppSelector(selectChatSettings);
   const listenerMode = useAppSelector(selectListenerMode);
   const nameColorMode = useAppSelector(selectNameColorMode);
-  const playerActorDict = useAppSelector((state) => state.actors.playerDict);
+  const playerActorDict = useAppSelector(selectPlayerDict);
   const [contextWidth, setContextWidth] = useState<number>(0);
   const [contextHeight, setContextHeight] = useState<number>(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -358,7 +361,17 @@ const ContextMenu = ({
       {
         title: 'Add to Ignore List',
         type: 'ACTION',
-        onClick: () => onClose(),
+        onClick: () => {
+          if (playerActor) {
+            dispatch(
+              addOrUpdatePlayer({
+                actorId: playerActor.actorId,
+                ignored: true,
+              }),
+            );
+          }
+          onClose();
+        },
       },
     );
   } else {

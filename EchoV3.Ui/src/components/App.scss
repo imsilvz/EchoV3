@@ -6,7 +6,7 @@
   padding: 0.125rem 0.25rem 0.125rem 0.25rem;
 
   >.echo-list-internal {
-    overflow-y: scroll;
+    overflow-y: overlay !important;
 
     &::-webkit-scrollbar {
       display: none;
