@@ -5,9 +5,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import {
   selectChatSettings,
+  selectIgnoreMode,
   selectListenerMode,
   selectNameColorMode,
   setChatSettings,
+  setIgnoreMode,
   setListenerMode,
   setNameColorMode,
 } from '../../redux/reducers/settingsReducer';
@@ -270,6 +272,7 @@ const ContextMenu = ({
 }: ContextMenuProps) => {
   const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
+  const ignoreMode = useAppSelector(selectIgnoreMode);
   const listenerMode = useAppSelector(selectListenerMode);
   const nameColorMode = useAppSelector(selectNameColorMode);
   const playerActorDict = useAppSelector(selectPlayerDict);
@@ -359,14 +362,16 @@ const ContextMenu = ({
         submenu: nameColorSubmenu,
       },
       {
-        title: 'Add to Ignore List',
+        title: playerActor?.ignored
+          ? 'Remove from Ignore List'
+          : 'Add to Ignore List',
         type: 'ACTION',
         onClick: () => {
           if (playerActor) {
             dispatch(
               addOrUpdatePlayer({
                 actorId: playerActor.actorId,
-                ignored: true,
+                ignored: !playerActor.ignored,
               }),
             );
           }
@@ -444,6 +449,12 @@ const ContextMenu = ({
       },
       {
         type: 'SEPARATOR',
+      },
+      {
+        title: 'Hide Ignored Users',
+        type: 'CHECKBOX',
+        checked: ignoreMode,
+        onClick: () => dispatch(setIgnoreMode(!ignoreMode)),
       },
       {
         title: 'Clear Message History',

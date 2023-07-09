@@ -6,6 +6,7 @@ import { Virtuoso } from 'react-virtuoso';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import {
   selectChatSettings,
+  selectIgnoreMode,
   selectListenerMode,
 } from '../redux/reducers/settingsReducer';
 
@@ -25,6 +26,7 @@ import {
 const App = () => {
   const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
+  const ignoreMode = useAppSelector(selectIgnoreMode);
   const listenerMode = useAppSelector(selectListenerMode);
   const playerDict = useAppSelector(selectPlayerDict);
   const [currentTargetId, setCurrentTargetId] = useState<number>(-1);
@@ -52,12 +54,21 @@ const App = () => {
       return chatSettings[msg.messageType as keyof typeof chatSettings] || false;
     });
     // Handle Ignore List
-    const ignoreListApplied = settingsApplied.filter((msg) => {
-      const senderData = playerDict[msg.senderId];
-      return !senderData?.ignored;
-    });
+    const ignoreListApplied = ignoreMode
+      ? settingsApplied.filter((msg) => {
+          const senderData = playerDict[msg.senderId];
+          return !senderData?.ignored;
+        })
+      : settingsApplied;
     return ignoreListApplied;
-  }, [currentTargetId, chatSettings, listenerMode, messageList, playerDict]);
+  }, [
+    currentTargetId,
+    chatSettings,
+    ignoreMode,
+    listenerMode,
+    messageList,
+    playerDict,
+  ]);
 
   // event listener hook!
   useEffect(() => {
