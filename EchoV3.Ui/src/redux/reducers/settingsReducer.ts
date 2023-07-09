@@ -9,6 +9,7 @@ const initialState = {
     Shout: true,
     Yell: true,
   },
+  ignoreMode: true,
   listenerMode: false,
   nameColorMode: 'RANDOM',
 };
@@ -46,6 +47,9 @@ export const settingsSlice = createSlice({
         ...transformer,
       };
     },
+    setIgnoreMode: (state, action: PayloadAction<boolean>) => {
+      state.ignoreMode = action.payload;
+    },
     setListenerMode: (state, action: PayloadAction<boolean>) => {
       state.listenerMode = action.payload;
     },
@@ -54,9 +58,10 @@ export const settingsSlice = createSlice({
     },
   },
 });
-export const { setChatSettings, setListenerMode, setNameColorMode } =
+export const { setChatSettings, setIgnoreMode, setListenerMode, setNameColorMode } =
   settingsSlice.actions;
 export const selectChatSettings = (state: RootState) => state.settings.chatSettings;
+export const selectIgnoreMode = (state: RootState) => state.settings.ignoreMode;
 export const selectListenerMode = (state: RootState) => state.settings.listenerMode;
 export const selectNameColorMode = (state: RootState) =>
   state.settings.nameColorMode;

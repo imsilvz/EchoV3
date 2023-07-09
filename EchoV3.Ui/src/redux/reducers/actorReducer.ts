@@ -17,6 +17,7 @@ interface PlayerActorUpdate {
   playerName?: string;
   playerJob?: string;
   playerColor?: string;
+  ignored?: boolean;
 }
 
 const DefaultPlayer: PlayerActor = {
@@ -24,6 +25,7 @@ const DefaultPlayer: PlayerActor = {
   playerName: 'Unknown',
   playerJob: undefined,
   playerColor: undefined,
+  ignored: false,
 };
 
 export const actorSlice = createSlice({
@@ -53,4 +55,5 @@ export const actorSlice = createSlice({
   },
 });
 export const { addOrUpdatePlayer } = actorSlice.actions;
+export const selectPlayerDict = (state: RootState) => state.actors.playerDict;
 export default actorSlice.reducer;

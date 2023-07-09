@@ -5,9 +5,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import {
   selectChatSettings,
+  selectIgnoreMode,
   selectListenerMode,
   selectNameColorMode,
   setChatSettings,
+  setIgnoreMode,
   setListenerMode,
   setNameColorMode,
 } from '../../redux/reducers/settingsReducer';
@@ -15,7 +17,10 @@ import {
 // local
 import './ContextMenu.scss';
 import { GetCanvasFont, GetTextWidth } from '../../utility/canvas';
-import { addOrUpdatePlayer } from '../../redux/reducers/actorReducer';
+import {
+  addOrUpdatePlayer,
+  selectPlayerDict,
+} from '../../redux/reducers/actorReducer';
 
 export type ContextType = null | 'PLAYER';
 interface ContextMenuProps {
@@ -267,9 +272,10 @@ const ContextMenu = ({
 }: ContextMenuProps) => {
   const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
+  const ignoreMode = useAppSelector(selectIgnoreMode);
   const listenerMode = useAppSelector(selectListenerMode);
   const nameColorMode = useAppSelector(selectNameColorMode);
-  const playerActorDict = useAppSelector((state) => state.actors.playerDict);
+  const playerActorDict = useAppSelector(selectPlayerDict);
   const [contextWidth, setContextWidth] = useState<number>(0);
   const [contextHeight, setContextHeight] = useState<number>(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -356,9 +362,21 @@ const ContextMenu = ({
         submenu: nameColorSubmenu,
       },
       {
-        title: 'Add to Ignore List',
+        title: playerActor?.ignored
+          ? 'Remove from Ignore List'
+          : 'Add to Ignore List',
         type: 'ACTION',
-        onClick: () => onClose(),
+        onClick: () => {
+          if (playerActor) {
+            dispatch(
+              addOrUpdatePlayer({
+                actorId: playerActor.actorId,
+                ignored: !playerActor.ignored,
+              }),
+            );
+          }
+          onClose();
+        },
       },
     );
   } else {
@@ -431,6 +449,12 @@ const ContextMenu = ({
       },
       {
         type: 'SEPARATOR',
+      },
+      {
+        title: 'Hide Ignored Users',
+        type: 'CHECKBOX',
+        checked: ignoreMode,
+        onClick: () => dispatch(setIgnoreMode(!ignoreMode)),
       },
       {
         title: 'Clear Message History',

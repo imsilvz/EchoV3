@@ -19,4 +19,5 @@ and then uses that data to parse to enhance the chat experience.
   - ***Filter Channels*** at will through a simple context menu. You can show or hide a channel with a single click.
   - ***Listener Mode*** can be toggled so that you will only see the messages sent by your in-game target. No longer will a flood of messages interrupt your one-on-one conversations!
   - ***Name Highlighting*** colors playernames based on one of three coloration strategies: custom (user-specified), random, or job-based.
-  - ***Roleplay Highlighting*** helps enhance readability by highlighting quotations in roleplay-flagged channels.
+  - ***Roleplay Highlighting*** helps enhance readability by highlighting quotations and 'ooc' markers in roleplay-flagged channels.
+  - The ***Expanded Ignore List*** allows you to hide users from the Echo chatlog, even if your FFXIV blacklist is full.
