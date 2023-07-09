@@ -1,9 +1,9 @@
 // react
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 
 // redux
-import { useAppSelector } from '../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import {
   selectChatSettings,
   selectListenerMode,
@@ -17,8 +17,10 @@ import * as ipc from '../types/ipc';
 import './App.scss';
 import ChatMessage from './ChatMessage/ChatMessage';
 import ContextMenu, { ContextType } from './ContextMenu/ContextMenu';
+import { addOrUpdatePlayer } from '../redux/reducers/actorReducer.ts';
 
 const App = () => {
+  const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
   const listenerMode = useAppSelector(selectListenerMode);
   const [currentTargetId, setCurrentTargetId] = useState<number>(-1);
@@ -56,6 +58,14 @@ const App = () => {
       // console.log(arg.data);
       switch (payload.echoType) {
         case 'Chat':
+          if ((payload as ipc.ChatPayload).senderName) {
+            dispatch(
+              addOrUpdatePlayer({
+                actorId: (payload as ipc.ChatPayload).senderId,
+                playerName: (payload as ipc.ChatPayload).senderName,
+              }),
+            );
+          }
           setMessageList((currList) => [...currList, payload as ipc.ChatPayload]);
           break;
         case 'LocalTarget':
@@ -99,6 +109,13 @@ const App = () => {
     };
   }, []);
 
+  const closeContextMenu = useCallback(() => {
+    setShowContextMenu((contextMenuData) => ({
+      ...contextMenuData,
+      show: false,
+    }));
+  }, []);
+
   // render
   return (
     <>
@@ -114,20 +131,14 @@ const App = () => {
           initialTopMostItemIndex={currentMessageList.length - 1}
         />
       </div>
-      {showContextMenu.show && (
-        <ContextMenu
-          contextType={showContextMenu.contextType}
-          contextData={showContextMenu.contextData}
-          xPos={showContextMenu.xPos}
-          yPos={showContextMenu.yPos}
-          onClose={() =>
-            setShowContextMenu((contextMenuData) => ({
-              ...contextMenuData,
-              show: false,
-            }))
-          }
-        />
-      )}
+      <ContextMenu
+        show={showContextMenu.show}
+        contextType={showContextMenu.contextType}
+        contextData={showContextMenu.contextData}
+        xPos={showContextMenu.xPos}
+        yPos={showContextMenu.yPos}
+        onClose={closeContextMenu}
+      />
     </>
   );
 };

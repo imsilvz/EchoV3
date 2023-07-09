@@ -1,5 +1,5 @@
 // react
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // redux
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
@@ -15,9 +15,11 @@ import {
 // local
 import './ContextMenu.scss';
 import { GetCanvasFont, GetTextWidth } from '../../utility/canvas';
+import { addOrUpdatePlayer } from '../../redux/reducers/actorReducer';
 
 export type ContextType = null | 'PLAYER';
 interface ContextMenuProps {
+  show?: boolean;
   contextType: ContextType;
   contextData?: unknown;
   xPos: number;
@@ -37,6 +39,7 @@ type MenuItemType = 'ACTION' | 'CHECKBOX' | 'LABEL' | 'SEPARATOR' | 'SUBMENU';
 interface GeneralMenuItemConfig {
   title?: string;
   type: MenuItemType;
+  renderCustom?: () => React.ReactNode;
 }
 
 interface ActionMenuItemConfig extends GeneralMenuItemConfig {
@@ -97,6 +100,9 @@ const ContextMenuItem = ({ config }: ContextMenuItemProps) => {
       return <ContextSubmenu config={config} />;
     default:
       break;
+  }
+  if (config.renderCustom) {
+    return config.renderCustom();
   }
   return (
     <div className="context-menu-item">
@@ -199,6 +205,7 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
 };
 
 const ContextMenu = ({
+  show,
   contextType,
   contextData,
   xPos,
@@ -209,6 +216,7 @@ const ContextMenu = ({
   const chatSettings = useAppSelector(selectChatSettings);
   const listenerMode = useAppSelector(selectListenerMode);
   const nameColorMode = useAppSelector(selectNameColorMode);
+  const playerActorDict = useAppSelector((state) => state.actors.playerDict);
   const [contextWidth, setContextWidth] = useState<number>(0);
   const [contextHeight, setContextHeight] = useState<number>(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -228,11 +236,31 @@ const ContextMenu = ({
   // Clear Ignore List (if playercount > 0)
   // Clear Message History
 
+  const playerActor = useMemo(() => {
+    if (contextType === 'PLAYER') {
+      return playerActorDict[contextData as number];
+    }
+    return undefined;
+  }, [playerActorDict, contextType, contextData]);
+  const playerColorHandler = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (playerActor) {
+        dispatch(
+          addOrUpdatePlayer({
+            actorId: playerActor.actorId,
+            playerColor: e.target.value || '#ffffff',
+          }),
+        );
+      }
+    },
+    [contextType, contextData],
+  );
+
   const menuItems: MenuItemConfig[] = [];
   if (contextType === 'PLAYER') {
     menuItems.push(
       {
-        title: 'Player Name',
+        title: playerActor?.playerName || 'Player Name',
         type: 'LABEL',
       },
       {
@@ -242,6 +270,23 @@ const ContextMenu = ({
         title: 'Set Name Color',
         type: 'ACTION',
         onClick: () => onClose,
+        renderCustom: () => {
+          return (
+            <div className="context-menu-colorinput">
+              <input
+                type="color"
+                //onClick={onClose}
+                onChange={playerColorHandler}
+                value={playerActor?.playerColor || '#ffffff'}
+              />
+              <span className="colorinput-label">Set Name Color</span>
+              <span
+                className="colorinput-preview"
+                style={{ backgroundColor: playerActor?.playerColor || '#ffffff' }}
+              />
+            </div>
+          );
+        },
       },
       {
         title: 'Add to Ignore List',
@@ -363,10 +408,10 @@ const ContextMenu = ({
         onClose();
       }
     };
-    //window.addEventListener('blur', onClose);
+    window.addEventListener('blur', onClose);
     window.addEventListener('mousedown', handleClick);
     return () => {
-      //window.removeEventListener('blur', onClose);
+      window.removeEventListener('blur', onClose);
       window.removeEventListener('mousedown', handleClick);
     };
   }, []);
@@ -383,11 +428,19 @@ const ContextMenu = ({
     positionStyle.top = window.innerHeight - contextHeight;
   }
   return (
-    <div ref={menuRef} className="context-menu" style={positionStyle}>
+    <div
+      ref={menuRef}
+      className="context-menu"
+      style={{
+        // necessary to keep object mounted
+        visibility: show ? 'visible' : 'hidden',
+        ...positionStyle,
+      }}
+    >
       {menuItems.map((item, idx) => (
         <ContextMenuItem key={`contextmenu-${idx}`} config={item} />
       ))}
     </div>
   );
 };
-export default ContextMenu;
+export default React.memo(ContextMenu);
