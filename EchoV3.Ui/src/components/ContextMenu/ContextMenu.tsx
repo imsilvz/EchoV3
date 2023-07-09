@@ -36,7 +36,13 @@ interface ContextMenuItemProps {
   closeSubmenu?: () => void;
 }
 
-type MenuItemType = 'ACTION' | 'CHECKBOX' | 'LABEL' | 'SEPARATOR' | 'SUBMENU';
+type MenuItemType =
+  | 'ACTION'
+  | 'CHECKBOX'
+  | 'COLOR'
+  | 'LABEL'
+  | 'SEPARATOR'
+  | 'SUBMENU';
 interface GeneralMenuItemConfig {
   title?: string;
   type: MenuItemType;
@@ -54,6 +60,14 @@ interface CheckboxMenuItemConfig extends GeneralMenuItemConfig {
   type: 'CHECKBOX';
   checked?: boolean;
   onClick?: () => void;
+}
+
+interface ColorInputMenuItemConfig extends GeneralMenuItemConfig {
+  title: string;
+  type: 'COLOR';
+  value: string;
+  onClick?: () => void;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 interface LabelMenuItemConfig extends GeneralMenuItemConfig {
@@ -74,11 +88,13 @@ interface SubmenuMenuItemConfig extends GeneralMenuItemConfig {
 type MenuItemConfig =
   | ActionMenuItemConfig
   | CheckboxMenuItemConfig
+  | ColorInputMenuItemConfig
   | LabelMenuItemConfig
   | SeparatorMenuItemConfig
   | SubmenuMenuItemConfig;
 
 const ContextMenuItem = ({ config, closeSubmenu }: ContextMenuItemProps) => {
+  const width = GetTextWidth(config.title || '', GetCanvasFont()) + 48 + 2;
   switch (config.type) {
     case 'CHECKBOX':
       return (
@@ -86,6 +102,27 @@ const ContextMenuItem = ({ config, closeSubmenu }: ContextMenuItemProps) => {
           <p>{config.title}</p>
           <span
             className={`context-menu-checkbox${config.checked ? ' checked' : ''}`}
+          />
+        </div>
+      );
+    case 'COLOR':
+      return (
+        <div className="context-menu-colorinput" style={{ minWidth: width }}>
+          <input
+            type="color"
+            onClick={() => {
+              if (closeSubmenu) closeSubmenu();
+              if (config.onClick) config.onClick();
+            }}
+            onChange={config.onChange}
+            value={config.value}
+          />
+          <span className="colorinput-label">Set Name Color</span>
+          <span
+            className="colorinput-preview"
+            style={{
+              backgroundColor: config.value,
+            }}
           />
         </div>
       );
@@ -106,7 +143,7 @@ const ContextMenuItem = ({ config, closeSubmenu }: ContextMenuItemProps) => {
     return config.renderCustom(closeSubmenu);
   }
   return (
-    <div className="context-menu-item">
+    <div className="context-menu-item" onClick={config?.onClick}>
       <p>{config.title}</p>
     </div>
   );
@@ -268,6 +305,36 @@ const ContextMenu = ({
 
   const menuItems: MenuItemConfig[] = [];
   if (contextType === 'PLAYER') {
+    // customize!
+    const nameColorSubmenu: MenuItemConfig[] = [
+      {
+        title: 'Set Name Color',
+        type: 'COLOR',
+        onClick: () => onClose(),
+        onChange: playerColorHandler,
+        value: playerActor?.playerColor || '#FFFFFF',
+      },
+    ];
+
+    // conditional option
+    if (playerActor?.playerColor) {
+      nameColorSubmenu.push({
+        title: 'Clear Custom Color',
+        type: 'ACTION',
+        onClick: () => {
+          if (playerActor) {
+            dispatch(
+              addOrUpdatePlayer({
+                actorId: playerActor.actorId,
+                playerColor: undefined,
+              }),
+            );
+          }
+        },
+      });
+    }
+
+    // generic menu
     menuItems.push(
       {
         title: playerActor?.playerName || 'Player Name',
@@ -279,43 +346,12 @@ const ContextMenu = ({
       {
         title: 'Name Color',
         type: 'SUBMENU',
-        submenu: [
-          {
-            title: 'Set Name Color',
-            type: 'ACTION',
-            onClick: () => onClose,
-            renderCustom: (closeSubmenu) => {
-              const width = GetTextWidth('Set Name Color', GetCanvasFont()) + 48 + 2;
-              return (
-                <div className="context-menu-colorinput" style={{ minWidth: width }}>
-                  <input
-                    type="color"
-                    onClick={() => {
-                      onClose();
-                      if (closeSubmenu) {
-                        closeSubmenu();
-                      }
-                    }}
-                    onChange={playerColorHandler}
-                    value={playerActor?.playerColor || '#ffffff'}
-                  />
-                  <span className="colorinput-label">Set Name Color</span>
-                  <span
-                    className="colorinput-preview"
-                    style={{
-                      backgroundColor: playerActor?.playerColor || '#ffffff',
-                    }}
-                  />
-                </div>
-              );
-            },
-          },
-        ],
+        submenu: nameColorSubmenu,
       },
       {
         title: 'Add to Ignore List',
         type: 'ACTION',
-        onClick: () => onClose,
+        onClick: () => onClose(),
       },
     );
   } else {
