@@ -1,5 +1,5 @@
 // react
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // redux
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
@@ -15,8 +15,13 @@ import {
 // local
 import './ContextMenu.scss';
 import { GetCanvasFont, GetTextWidth } from '../../utility/canvas';
+import { addOrUpdatePlayer } from '../../redux/reducers/actorReducer';
 
+export type ContextType = null | 'PLAYER';
 interface ContextMenuProps {
+  show?: boolean;
+  contextType: ContextType;
+  contextData?: unknown;
   xPos: number;
   yPos: number;
   onClose: () => void;
@@ -28,12 +33,20 @@ interface ContextSubmenuProps {
 
 interface ContextMenuItemProps {
   config: MenuItemConfig;
+  closeSubmenu?: () => void;
 }
 
-type MenuItemType = 'ACTION' | 'CHECKBOX' | 'SEPARATOR' | 'SUBMENU';
+type MenuItemType =
+  | 'ACTION'
+  | 'CHECKBOX'
+  | 'COLOR'
+  | 'LABEL'
+  | 'SEPARATOR'
+  | 'SUBMENU';
 interface GeneralMenuItemConfig {
   title?: string;
   type: MenuItemType;
+  renderCustom?: (closeSubmenu?: () => void) => React.ReactNode;
 }
 
 interface ActionMenuItemConfig extends GeneralMenuItemConfig {
@@ -49,6 +62,19 @@ interface CheckboxMenuItemConfig extends GeneralMenuItemConfig {
   onClick?: () => void;
 }
 
+interface ColorInputMenuItemConfig extends GeneralMenuItemConfig {
+  title: string;
+  type: 'COLOR';
+  value: string;
+  onClick?: () => void;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+interface LabelMenuItemConfig extends GeneralMenuItemConfig {
+  title: string;
+  type: 'LABEL';
+}
+
 interface SeparatorMenuItemConfig extends GeneralMenuItemConfig {
   type: 'SEPARATOR';
 }
@@ -62,10 +88,13 @@ interface SubmenuMenuItemConfig extends GeneralMenuItemConfig {
 type MenuItemConfig =
   | ActionMenuItemConfig
   | CheckboxMenuItemConfig
+  | ColorInputMenuItemConfig
+  | LabelMenuItemConfig
   | SeparatorMenuItemConfig
   | SubmenuMenuItemConfig;
 
-const ContextMenuItem = ({ config }: ContextMenuItemProps) => {
+const ContextMenuItem = ({ config, closeSubmenu }: ContextMenuItemProps) => {
+  const width = GetTextWidth(config.title || '', GetCanvasFont()) + 48 + 2;
   switch (config.type) {
     case 'CHECKBOX':
       return (
@@ -76,6 +105,33 @@ const ContextMenuItem = ({ config }: ContextMenuItemProps) => {
           />
         </div>
       );
+    case 'COLOR':
+      return (
+        <div className="context-menu-colorinput" style={{ minWidth: width }}>
+          <input
+            type="color"
+            onClick={() => {
+              if (closeSubmenu) closeSubmenu();
+              if (config.onClick) config.onClick();
+            }}
+            onChange={config.onChange}
+            value={config.value}
+          />
+          <span className="colorinput-label">Set Name Color</span>
+          <span
+            className="colorinput-preview"
+            style={{
+              backgroundColor: config.value,
+            }}
+          />
+        </div>
+      );
+    case 'LABEL':
+      return (
+        <div className="context-menu-label">
+          <p>{config.title}</p>
+        </div>
+      );
     case 'SEPARATOR':
       return <div className="context-menu-separator" />;
     case 'SUBMENU':
@@ -83,8 +139,17 @@ const ContextMenuItem = ({ config }: ContextMenuItemProps) => {
     default:
       break;
   }
+  if (config.renderCustom) {
+    return config.renderCustom(closeSubmenu);
+  }
   return (
-    <div className="context-menu-item">
+    <div
+      className="context-menu-item"
+      onClick={() => {
+        if (closeSubmenu) closeSubmenu();
+        if (config.onClick) config.onClick();
+      }}
+    >
       <p>{config.title}</p>
     </div>
   );
@@ -120,15 +185,22 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
     let height = 8; // padding
     for (let i = 0; i < config.submenu.length; i++) {
       const menuItem = config.submenu[i];
-      if (menuItem.type !== 'SEPARATOR') {
+      if (menuItem.type === 'SEPARATOR') {
+        height += 1;
+      } else if (menuItem.type === 'LABEL') {
+        // text width + padding (both sides) + border
+        const titleWidth = GetTextWidth(menuItem.title, GetCanvasFont()) + 48 + 2;
+        if (titleWidth > max) {
+          max = titleWidth;
+        }
+        height += 12 + 4; // line height + padding
+      } else {
         // text width + padding (both sides) + border
         const titleWidth = GetTextWidth(menuItem.title, GetCanvasFont()) + 48 + 2;
         if (titleWidth > max) {
           max = titleWidth;
         }
         height += 20 + 8; // line height + padding
-      } else {
-        height += 1;
       }
       height += 4; // gap
     }
@@ -165,104 +237,207 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
         <p>{config.title}</p>
         <span className="context-menu-chevron" />
       </div>
-      {showSubmenu && (
-        <div ref={submenuRef} className="context-menu" style={submenuPositionStyle}>
-          {config.submenu.map((item, idx) => (
-            <ContextMenuItem key={`contextmenu-${idx}`} config={item} />
-          ))}
-        </div>
-      )}
+      <div
+        ref={submenuRef}
+        className="context-menu"
+        style={{
+          ...submenuPositionStyle,
+          visibility: showSubmenu ? 'visible' : 'hidden',
+        }}
+      >
+        {config.submenu.map((item, idx) => (
+          <ContextMenuItem
+            key={`contextmenu-${idx}`}
+            config={item}
+            closeSubmenu={() => setShowSubmenu(false)}
+          />
+        ))}
+      </div>
     </>
   );
 };
 
-const ContextMenu = ({ xPos, yPos, onClose }: ContextMenuProps) => {
+const ContextMenu = ({
+  show,
+  contextType,
+  contextData,
+  xPos,
+  yPos,
+  onClose,
+}: ContextMenuProps) => {
   const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
   const listenerMode = useAppSelector(selectListenerMode);
   const nameColorMode = useAppSelector(selectNameColorMode);
+  const playerActorDict = useAppSelector((state) => state.actors.playerDict);
   const [contextWidth, setContextWidth] = useState<number>(0);
   const [contextHeight, setContextHeight] = useState<number>(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  // PLAYER CONTEXT MENU
+  // Player Name (label)
+  // -- Separator --
+  // Set Name Color
+  // Add to Ignore List
+
+  // DEFAULT CONTEXT MENU
   // Listener Mode []
   // -- Separator --
   // Name Color Strategy > Custom, Random, Job-Based
   // Chat Channel Settings > Say, Emote, Yell, Shout, Tell
   // -- Separator --
-  // Close Window
-  const menuItems: MenuItemConfig[] = [
-    {
-      title: 'Listener Mode',
-      type: 'CHECKBOX',
-      checked: listenerMode,
-      onClick: () => dispatch(setListenerMode(!listenerMode)),
+  // Clear Ignore List (if playercount > 0)
+  // Clear Message History
+
+  const playerActor = useMemo(() => {
+    if (contextType === 'PLAYER') {
+      return playerActorDict[contextData as number];
+    }
+    return undefined;
+  }, [playerActorDict, contextType, contextData]);
+  const playerColorHandler = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (playerActor) {
+        dispatch(
+          addOrUpdatePlayer({
+            actorId: playerActor.actorId,
+            playerColor: e.target.value || '#ffffff',
+          }),
+        );
+      }
     },
-    {
-      type: 'SEPARATOR',
-    },
-    {
-      title: 'Name Color Strategy',
-      type: 'SUBMENU',
-      submenu: [
-        {
-          title: 'Custom',
-          type: 'CHECKBOX',
-          checked: nameColorMode === 'CUSTOM',
-          onClick: () => dispatch(setNameColorMode('CUSTOM')),
+    [contextType, contextData],
+  );
+
+  const menuItems: MenuItemConfig[] = [];
+  if (contextType === 'PLAYER') {
+    // customize!
+    const nameColorSubmenu: MenuItemConfig[] = [
+      {
+        title: 'Set Name Color',
+        type: 'COLOR',
+        onClick: () => onClose(),
+        onChange: playerColorHandler,
+        value: playerActor?.playerColor || '#FFFFFF',
+      },
+    ];
+
+    // conditional option
+    if (playerActor?.playerColor) {
+      nameColorSubmenu.push({
+        title: 'Clear Custom Color',
+        type: 'ACTION',
+        onClick: () => {
+          if (playerActor) {
+            dispatch(
+              addOrUpdatePlayer({
+                actorId: playerActor.actorId,
+                playerColor: undefined,
+              }),
+            );
+          }
+          onClose();
         },
-        {
-          title: 'Random',
-          type: 'CHECKBOX',
-          checked: nameColorMode === 'RANDOM',
-          onClick: () => dispatch(setNameColorMode('RANDOM')),
-        },
-        {
-          title: 'Job-Based',
-          type: 'CHECKBOX',
-          checked: nameColorMode === 'JOB',
-          onClick: () => dispatch(setNameColorMode('JOB')),
-        },
-      ],
-    },
-    {
-      title: 'Chat Channel Settings',
-      type: 'SUBMENU',
-      submenu: [
-        {
-          title: 'Say',
-          type: 'CHECKBOX',
-          checked: chatSettings.Say,
-          onClick: () => dispatch(setChatSettings({ Say: !chatSettings.Say })),
-        },
-        {
-          title: 'Emote',
-          type: 'CHECKBOX',
-          checked: chatSettings.Emote,
-          onClick: () => dispatch(setChatSettings({ Emote: !chatSettings.Emote })),
-        },
-        {
-          title: 'Yell',
-          type: 'CHECKBOX',
-          checked: chatSettings.Yell,
-          onClick: () => dispatch(setChatSettings({ Yell: !chatSettings.Yell })),
-        },
-        {
-          title: 'Shout',
-          type: 'CHECKBOX',
-          checked: chatSettings.Shout,
-          onClick: () => dispatch(setChatSettings({ Shout: !chatSettings.Shout })),
-        },
-      ],
-    },
-    {
-      type: 'SEPARATOR',
-    },
-    {
-      title: 'Close Window',
-      type: 'ACTION',
-    },
-  ];
+      });
+    }
+
+    // generic menu
+    menuItems.push(
+      {
+        title: playerActor?.playerName || 'Player Name',
+        type: 'LABEL',
+      },
+      {
+        type: 'SEPARATOR',
+      },
+      {
+        title: 'Name Color',
+        type: 'SUBMENU',
+        submenu: nameColorSubmenu,
+      },
+      {
+        title: 'Add to Ignore List',
+        type: 'ACTION',
+        onClick: () => onClose(),
+      },
+    );
+  } else {
+    menuItems.push(
+      {
+        title: 'Listener Mode',
+        type: 'CHECKBOX',
+        checked: listenerMode,
+        onClick: () => dispatch(setListenerMode(!listenerMode)),
+      },
+      {
+        type: 'SEPARATOR',
+      },
+      {
+        title: 'Name Color Strategy',
+        type: 'SUBMENU',
+        submenu: [
+          {
+            title: 'Custom',
+            type: 'CHECKBOX',
+            checked: nameColorMode === 'CUSTOM',
+            onClick: () => dispatch(setNameColorMode('CUSTOM')),
+          },
+          {
+            title: 'Random',
+            type: 'CHECKBOX',
+            checked: nameColorMode === 'RANDOM',
+            onClick: () => dispatch(setNameColorMode('RANDOM')),
+          },
+          {
+            title: 'Job-Based',
+            type: 'CHECKBOX',
+            checked: nameColorMode === 'JOB',
+            onClick: () => dispatch(setNameColorMode('JOB')),
+          },
+        ],
+      },
+      {
+        title: 'Chat Channel Settings',
+        type: 'SUBMENU',
+        submenu: [
+          {
+            title: 'Say',
+            type: 'CHECKBOX',
+            checked: chatSettings.Say,
+            onClick: () => dispatch(setChatSettings({ Say: !chatSettings.Say })),
+          },
+          {
+            title: 'Emote',
+            type: 'CHECKBOX',
+            checked: chatSettings.Emote,
+            onClick: () => dispatch(setChatSettings({ Emote: !chatSettings.Emote })),
+          },
+          {
+            type: 'SEPARATOR',
+          },
+          {
+            title: 'Shout',
+            type: 'CHECKBOX',
+            checked: chatSettings.Shout,
+            onClick: () => dispatch(setChatSettings({ Shout: !chatSettings.Shout })),
+          },
+          {
+            title: 'Yell',
+            type: 'CHECKBOX',
+            checked: chatSettings.Yell,
+            onClick: () => dispatch(setChatSettings({ Yell: !chatSettings.Yell })),
+          },
+        ],
+      },
+      {
+        type: 'SEPARATOR',
+      },
+      {
+        title: 'Clear Message History',
+        type: 'ACTION',
+      },
+    );
+  }
 
   // menu items
   useEffect(() => {
@@ -270,15 +445,22 @@ const ContextMenu = ({ xPos, yPos, onClose }: ContextMenuProps) => {
     let height = 8; // padding
     for (let i = 0; i < menuItems.length; i++) {
       const menuItem = menuItems[i];
-      if (menuItem.type !== 'SEPARATOR') {
+      if (menuItem.type === 'SEPARATOR') {
+        height += 1;
+      } else if (menuItem.type === 'LABEL') {
+        // text width + padding (both sides) + border
+        const titleWidth = GetTextWidth(menuItem.title, GetCanvasFont()) + 48 + 2;
+        if (titleWidth > max) {
+          max = titleWidth;
+        }
+        height += 12 + 4; // line height + padding
+      } else {
         // text width + padding (both sides) + border
         const titleWidth = GetTextWidth(menuItem.title, GetCanvasFont()) + 48 + 2;
         if (titleWidth > max) {
           max = titleWidth;
         }
         height += 20 + 8; // line height + padding
-      } else {
-        height += 1;
       }
       height += 4; // gap
     }
@@ -313,11 +495,19 @@ const ContextMenu = ({ xPos, yPos, onClose }: ContextMenuProps) => {
     positionStyle.top = window.innerHeight - contextHeight;
   }
   return (
-    <div ref={menuRef} className="context-menu" style={positionStyle}>
+    <div
+      ref={menuRef}
+      className="context-menu"
+      style={{
+        // necessary to keep object mounted
+        visibility: show ? 'visible' : 'hidden',
+        ...positionStyle,
+      }}
+    >
       {menuItems.map((item, idx) => (
         <ContextMenuItem key={`contextmenu-${idx}`} config={item} />
       ))}
     </div>
   );
 };
-export default ContextMenu;
+export default React.memo(ContextMenu);
