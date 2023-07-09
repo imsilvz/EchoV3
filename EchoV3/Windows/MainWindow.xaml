@@ -70,6 +70,7 @@
                 <wv2:WebView2 
                     Name="webView"
                     DefaultBackgroundColor="Transparent"
+                    Visibility="Hidden"
                 />
             </DockPanel>
 
