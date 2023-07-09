@@ -32,6 +32,8 @@ namespace EchoV3.Windows
         async void InitializeAsync()
         {
             // webview init
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            string app = LoadResource("EchoV3.Resources.Ui.index.html");
             var env = await CoreWebView2Environment.CreateAsync(
                 userDataFolder: Path.Combine(
                     Path.GetTempPath(),
@@ -39,8 +41,6 @@ namespace EchoV3.Windows
                 )
             );
             await webView.EnsureCoreWebView2Async(env);
-
-            string app = LoadResource("EchoV3.Resources.Ui.index.html");
             webView.NavigateToString(app);
         }
 
@@ -48,16 +48,10 @@ namespace EchoV3.Windows
         {
             base.OnContentRendered(e);
 
-            // Hide the control until everything renders
-            // Focus is necessary! There seems to be a bug where the
-            // background is not transparent until the control gets focused once.
             webView.Visibility = Visibility.Visible;
-            this.webView.Focus();
-
             ChatEvent.OnEventFired += OnChatEvent;
             ChatHandlerEvent.OnEventFired += OnChatHandlerEvent;
             ClientTriggerEvent.OnEventFired += OnClientTriggerEvent;
-            webView.CoreWebView2.OpenDevToolsWindow();
         }
 
         private void CloseButton_OnClick(object sender, RoutedEventArgs e)
