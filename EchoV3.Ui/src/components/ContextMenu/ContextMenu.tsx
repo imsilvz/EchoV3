@@ -143,7 +143,13 @@ const ContextMenuItem = ({ config, closeSubmenu }: ContextMenuItemProps) => {
     return config.renderCustom(closeSubmenu);
   }
   return (
-    <div className="context-menu-item" onClick={config?.onClick}>
+    <div
+      className="context-menu-item"
+      onClick={() => {
+        if (closeSubmenu) closeSubmenu();
+        if (config.onClick) config.onClick();
+      }}
+    >
       <p>{config.title}</p>
     </div>
   );
@@ -330,6 +336,7 @@ const ContextMenu = ({
               }),
             );
           }
+          onClose();
         },
       });
     }
