@@ -26,17 +26,11 @@ namespace EchoV3.Windows
         public MainWindow(FFXIVEventService eventService)
         {
             InitializeComponent();
-            ChatEvent.OnEventFired += OnChatEvent;
-            ChatHandlerEvent.OnEventFired += OnChatHandlerEvent;
-            ClientTriggerEvent.OnEventFired += OnClientTriggerEvent;
-            webView.NavigationCompleted += WebView_NavigationCompleted;
-            this.Topmost = true;
+            InitializeAsync();
         }
 
-        protected override async void OnContentRendered(EventArgs e)
+        async void InitializeAsync()
         {
-            base.OnContentRendered(e);
-
             // webview init
             var env = await CoreWebView2Environment.CreateAsync(
                 userDataFolder: Path.Combine(
@@ -48,13 +42,22 @@ namespace EchoV3.Windows
 
             string app = LoadResource("EchoV3.Resources.Ui.index.html");
             webView.NavigateToString(app);
-            webView.CoreWebView2.OpenDevToolsWindow();
         }
 
-        private void WebView_NavigationCompleted(object? sender, EventArgs e)
+        protected override async void OnContentRendered(EventArgs e)
         {
-            //string script = LoadResource("EchoV3.Resources.Ui.index.js");
-            //webView.ExecuteScriptAsync(script);
+            base.OnContentRendered(e);
+
+            // Hide the control until everything renders
+            // Focus is necessary! There seems to be a bug where the
+            // background is not transparent until the control gets focused once.
+            webView.Visibility = Visibility.Visible;
+            this.webView.Focus();
+
+            ChatEvent.OnEventFired += OnChatEvent;
+            ChatHandlerEvent.OnEventFired += OnChatHandlerEvent;
+            ClientTriggerEvent.OnEventFired += OnClientTriggerEvent;
+            webView.CoreWebView2.OpenDevToolsWindow();
         }
 
         private void CloseButton_OnClick(object sender, RoutedEventArgs e)
