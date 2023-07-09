@@ -33,14 +33,14 @@ interface ContextSubmenuProps {
 
 interface ContextMenuItemProps {
   config: MenuItemConfig;
-  width?: number;
+  closeSubmenu?: () => void;
 }
 
 type MenuItemType = 'ACTION' | 'CHECKBOX' | 'LABEL' | 'SEPARATOR' | 'SUBMENU';
 interface GeneralMenuItemConfig {
   title?: string;
   type: MenuItemType;
-  renderCustom?: (width?: number) => React.ReactNode;
+  renderCustom?: (closeSubmenu?: () => void) => React.ReactNode;
 }
 
 interface ActionMenuItemConfig extends GeneralMenuItemConfig {
@@ -78,7 +78,7 @@ type MenuItemConfig =
   | SeparatorMenuItemConfig
   | SubmenuMenuItemConfig;
 
-const ContextMenuItem = ({ config, width }: ContextMenuItemProps) => {
+const ContextMenuItem = ({ config, closeSubmenu }: ContextMenuItemProps) => {
   switch (config.type) {
     case 'CHECKBOX':
       return (
@@ -103,7 +103,7 @@ const ContextMenuItem = ({ config, width }: ContextMenuItemProps) => {
       break;
   }
   if (config.renderCustom) {
-    return config.renderCustom(width);
+    return config.renderCustom(closeSubmenu);
   }
   return (
     <div className="context-menu-item">
@@ -129,10 +129,10 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
       }
     };
     if (showSubmenu) {
-      //window.addEventListener('mousemove', handleClose);
+      window.addEventListener('mousemove', handleClose);
     }
     return () => {
-      //window.removeEventListener('mousemove', handleClose);
+      window.removeEventListener('mousemove', handleClose);
     };
   }, [showSubmenu]);
 
@@ -194,17 +194,22 @@ const ContextSubmenu = ({ config }: ContextSubmenuProps) => {
         <p>{config.title}</p>
         <span className="context-menu-chevron" />
       </div>
-      {showSubmenu && (
-        <div ref={submenuRef} className="context-menu" style={submenuPositionStyle}>
-          {config.submenu.map((item, idx) => (
-            <ContextMenuItem
-              key={`contextmenu-${idx}`}
-              config={item}
-              width={contextWidth}
-            />
-          ))}
-        </div>
-      )}
+      <div
+        ref={submenuRef}
+        className="context-menu"
+        style={{
+          ...submenuPositionStyle,
+          visibility: showSubmenu ? 'visible' : 'hidden',
+        }}
+      >
+        {config.submenu.map((item, idx) => (
+          <ContextMenuItem
+            key={`contextmenu-${idx}`}
+            config={item}
+            closeSubmenu={() => setShowSubmenu(false)}
+          />
+        ))}
+      </div>
     </>
   );
 };
@@ -279,17 +284,18 @@ const ContextMenu = ({
             title: 'Set Name Color',
             type: 'ACTION',
             onClick: () => onClose,
-            renderCustom: (width) => {
+            renderCustom: (closeSubmenu) => {
+              const width = GetTextWidth('Set Name Color', GetCanvasFont()) + 48 + 2;
               return (
-                <div
-                  className="context-menu-colorinput"
-                  style={{
-                    minWidth: width !== undefined ? width : undefined,
-                  }}
-                >
+                <div className="context-menu-colorinput" style={{ minWidth: width }}>
                   <input
                     type="color"
-                    onClick={onClose}
+                    onClick={() => {
+                      onClose();
+                      if (closeSubmenu) {
+                        closeSubmenu();
+                      }
+                    }}
                     onChange={playerColorHandler}
                     value={playerActor?.playerColor || '#ffffff'}
                   />
@@ -426,10 +432,10 @@ const ContextMenu = ({
         onClose();
       }
     };
-    //window.addEventListener('blur', onClose);
+    window.addEventListener('blur', onClose);
     window.addEventListener('mousedown', handleClick);
     return () => {
-      //window.removeEventListener('blur', onClose);
+      window.removeEventListener('blur', onClose);
       window.removeEventListener('mousedown', handleClick);
     };
   }, []);
