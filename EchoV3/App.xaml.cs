@@ -53,7 +53,7 @@ namespace EchoV3
             catch (WebView2RuntimeNotFoundException exception)
             {
                 // Handle the runtime not being installed.
-                MessageBox.Show(exception.Message, "Dependency Not Installed", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(exception.Message, "Dependency not installed", MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.Exit(1);
             }
 
@@ -65,7 +65,7 @@ namespace EchoV3
             }
             else
             {
-                Debug.WriteLine("[!] Failed to get MainWindow!");
+                MessageBox.Show("Failed to acquire a handle to MainWindow!", "An error occurred while starting Echo", MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.Exit(1);
             }
         }

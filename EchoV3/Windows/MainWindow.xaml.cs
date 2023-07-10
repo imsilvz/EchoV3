@@ -182,8 +182,13 @@ namespace EchoV3.Windows
         {
             string data;
             var assembly = Assembly.GetExecutingAssembly();
-            using (Stream s = assembly.GetManifestResourceStream(name))
+            using (Stream? s = assembly.GetManifestResourceStream(name))
             {
+                if (s is null)
+                {
+                    MessageBox.Show($"Failed to load embedded resources!", "An error occurred while starting Echo", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Environment.Exit(1);
+                }
                 using (StreamReader r = new StreamReader(s))
                 {
                     data = r.ReadToEnd();
