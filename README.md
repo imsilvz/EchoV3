@@ -24,7 +24,7 @@ and then uses that data to parse to enhance the chat experience.
 
 ## Installation
   1. Install [.NET 7.0](https://dotnet.microsoft.com/en-us/download)
-  2. Install the [latest release of WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section). The Evergreen installer is also packaged with Echo.
+  2. Install the [latest release of WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section).
   3. Download the latest release from [this page.](https://github.com/imsilvz/EchoV3/releases/latest)
   4. Run Echo.exe!
   5. Please be aware it *must* be run as administrator or it will be unable to read data from FFXIV.
