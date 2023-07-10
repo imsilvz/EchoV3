@@ -3,6 +3,7 @@ import type { RootState } from '../store';
 
 const initialState = {
   chatSettings: {
+    System: true,
     Say: true,
     Emote: true,
     CustomEmote: true,
@@ -22,6 +23,7 @@ export const settingsSlice = createSlice({
     setChatSettings: (
       state,
       action: PayloadAction<{
+        System?: boolean;
         Say?: boolean;
         Emote?: boolean;
         Shout?: boolean;
@@ -29,6 +31,7 @@ export const settingsSlice = createSlice({
       }>,
     ) => {
       const transformer: {
+        System?: boolean;
         Say?: boolean;
         Emote?: boolean;
         CustomEmote?: boolean;

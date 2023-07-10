@@ -41,6 +41,7 @@ namespace EchoV3.Services
         private Thread? _pipeThread;
 
         // events
+        public event EventHandler<bool>? ConnectionStateChanged;
         public event EventHandler<IDeucalionFrame>? FrameReady;
         public event EventHandler<DebugFrame>? DebugFrameProcessed;
         public event EventHandler<IFFXIVIpcFrame>? IpcFrameProcessed;
@@ -144,6 +145,7 @@ namespace EchoV3.Services
                 Debug.WriteLine("[+] Connecting to Deucalion Pipe...");
                 pipe.Connect(5000);
                 Debug.WriteLine("[+] Connected to Deucalion Pipe!");
+                ConnectionStateChanged?.Invoke(this, true);
 
                 // Customize Options
                 using (var writer = new BinaryWriter(pipe, Encoding.UTF8, true))
@@ -178,6 +180,7 @@ namespace EchoV3.Services
                         Thread.Sleep(1);
                     }
                 }
+                ConnectionStateChanged?.Invoke(this, false);
             }
         }
 

@@ -74,7 +74,8 @@ const App = () => {
   useEffect(() => {
     window.chrome.webview.addEventListener('message', (arg) => {
       const payload = arg.data as ipc.IpcPayload;
-      // console.log(arg.data);
+      let newItem: ipc.ChatPayload;
+      console.log(arg.data);
       switch (payload.echoType) {
         case 'Chat':
           if ((payload as ipc.ChatPayload).senderName) {
@@ -89,6 +90,17 @@ const App = () => {
           break;
         case 'LocalTarget':
           setCurrentTargetId((payload as ipc.LocalTargetPayload).targetId);
+          break;
+        case 'System':
+          newItem = {
+            messageType: 'System',
+            senderId: 0,
+            senderName: '',
+            senderActor: undefined,
+            ...(payload as ipc.SystemPayload),
+          };
+          console.log(newItem);
+          setMessageList((currList) => [...currList, newItem]);
           break;
         default:
           break;

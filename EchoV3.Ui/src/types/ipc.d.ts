@@ -16,3 +16,7 @@ export interface ChatPayload extends IpcPayload {
 export interface LocalTargetPayload extends IpcPayload {
   targetId: number;
 }
+
+export interface SystemPayload extends IpcPayload {
+  message: string;
+}
