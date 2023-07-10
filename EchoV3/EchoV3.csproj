@@ -7,7 +7,6 @@
     <UseWPF>true</UseWPF>
 		<StartupObject>EchoV3.Program</StartupObject>
 
-    <DebugType>embedded</DebugType>
     <SelfContained>False</SelfContained>
     <PublishSingleFile>True</PublishSingleFile>
     <PublishReadyToRun>True</PublishReadyToRun>
@@ -20,21 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <None Update="Resources\deucalion.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\opcodes.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\Ui\" />
-    <EmbeddedResource Include="Resources\Ui\*" />
   </ItemGroup>
 
 </Project>
