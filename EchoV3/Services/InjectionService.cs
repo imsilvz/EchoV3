@@ -1,15 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
-using System.IO.Pipes;
-using EchoV3.Models;
+using System.Windows;
 
 namespace EchoV3.Services
 {
@@ -224,7 +219,7 @@ namespace EchoV3.Services
                 );
             if (RemoteThreadHandle == IntPtr.Zero)
             {
-                Debug.WriteLine("[!] Obtaining a handle to remote thread in target process failed.");
+                MessageBox.Show("Obtaining a handle to remote thread in target process failed.", "An error occurred while starting Echo", MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.Exit(1);
             }
             Debug.WriteLine("[+] Obtaining a handle to remote thread (0x" + RemoteThreadHandle + ") in target process is successful.");
