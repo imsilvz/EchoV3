@@ -80,7 +80,7 @@ namespace EchoV3.Services
 
         private int _activeProcessId;
         private string _injectionDllPath;
-        private Thread _pollingThread;
+        private Thread? _pollingThread;
 
         // events
         public event EventHandler<int>? ProcessReady;
@@ -88,6 +88,10 @@ namespace EchoV3.Services
         {
             _activeProcessId = -1;
             _injectionDllPath = "Resources/deucalion.dll";
+        }
+
+        public void StartScanner()
+        {
             _pollingThread = new Thread(PollProcesses);
             _pollingThread.IsBackground = true;
             _pollingThread.Start();

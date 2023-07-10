@@ -92,6 +92,30 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
       return `${messageData.senderId}-${messageData.timestamp}`;
     },
   },
+  System: {
+    CSSClassName: 'msgtype-default',
+    ColoredNames: false,
+    RoleplayHighlight: false,
+    Parse: function (messageData) {
+      const defaultSettings = MessageTypeSettings['Default'];
+      return (
+        <p>
+          {this.FormatSender
+            ? this.FormatSender(messageData)
+            : (
+                defaultSettings.FormatSender as (
+                  messageData: ipc.ChatPayload,
+                ) => React.ReactNode
+              )(messageData)}
+          <span className="chat-message-content" data-testid="chat-message-content">
+            {this.FormatMessage
+              ? this.FormatMessage(messageData)
+              : defaultSettings.FormatMessage!(messageData)}
+          </span>
+        </p>
+      );
+    },
+  },
   Say: {
     CSSClassName: 'msgtype-say',
     ColoredNames: true,
@@ -169,6 +193,8 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const playerActorDict = useAppSelector(selectPlayerDict);
   const messageSettings = MessageTypeSettings[message.messageType];
   const playerActor = playerActorDict[message.senderId];
+
+  console.log('message', message);
 
   let msgClassName = 'chat-message';
   if (playerActor?.ignored) {
