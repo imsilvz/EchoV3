@@ -96,23 +96,9 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
     CSSClassName: 'msgtype-default',
     ColoredNames: false,
     RoleplayHighlight: false,
-    Parse: function (messageData) {
-      const defaultSettings = MessageTypeSettings['Default'];
+    FormatSender: function (messageData) {
       return (
-        <p>
-          {this.FormatSender
-            ? this.FormatSender(messageData)
-            : (
-                defaultSettings.FormatSender as (
-                  messageData: ipc.ChatPayload,
-                ) => React.ReactNode
-              )(messageData)}
-          <span className="chat-message-content" data-testid="chat-message-content">
-            {this.FormatMessage
-              ? this.FormatMessage(messageData)
-              : defaultSettings.FormatMessage!(messageData)}
-          </span>
-        </p>
+        <span className="chat-message-sender" data-testid="chat-message-sender" />
       );
     },
   },
