@@ -21,3 +21,10 @@ and then uses that data to parse to enhance the chat experience.
   - ***Name Highlighting*** colors playernames based on one of three coloration strategies: custom (user-specified), random, or job-based.
   - ***Roleplay Highlighting*** helps enhance readability by highlighting quotations and 'ooc' markers in roleplay-flagged channels.
   - The ***Expanded Ignore List*** allows you to hide users from the Echo chatlog, even if your FFXIV blacklist is full.
+
+## Installation
+  1. Install [.NET 7.0](https://dotnet.microsoft.com/en-us/download)
+  2. Install the [latest release of WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section).
+  3. Download the latest release from [this page.](https://github.com/imsilvz/EchoV3/releases/latest)
+  4. Run Echo.exe!
+  5. Echo *must* be run as administrator to be able to read data from FFXIV.

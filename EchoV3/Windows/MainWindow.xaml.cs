@@ -3,18 +3,21 @@ using System.IO;
 using System.Reflection;
 using System.Diagnostics;
 using System.Text.Json;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 
 using Microsoft.Web.WebView2.Core;
 
 using EchoV3.Services;
-using EchoV3.Interfaces.Deucalion;
 using EchoV3.Models.FFXIV.Events.Client;
 using EchoV3.Models.FFXIV.Events.Server;
 using EchoV3.Models.Echo.Ipc;
 using EchoV3.Models.FFXIV.GameData;
-using System.Windows.Controls;
+using System.Text.Json.Serialization;
+using EchoV3.Utility;
 
 namespace EchoV3.Windows
 {
@@ -52,6 +55,31 @@ namespace EchoV3.Windows
             ChatEvent.OnEventFired += OnChatEvent;
             ChatHandlerEvent.OnEventFired += OnChatHandlerEvent;
             ClientTriggerEvent.OnEventFired += OnClientTriggerEvent;
+        }
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            base.OnClosing(e);
+            
+            var wp = this.GetPlacement();
+            Settings.SaveWindowPosition(wp);
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            try
+            {
+                var wp = Settings.GetSavedWindowPosition();
+                if (wp is not null)
+                {
+                    this.SetPlacement((WINDOWPLACEMENT)wp);
+                }
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         private void CloseButton_OnClick(object sender, RoutedEventArgs e)
