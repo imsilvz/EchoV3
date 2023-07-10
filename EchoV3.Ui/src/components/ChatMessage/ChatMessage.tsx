@@ -92,6 +92,14 @@ export const MessageTypeSettings: { [key: string]: MessageSetting } = {
       return `${messageData.senderId}-${messageData.timestamp}`;
     },
   },
+  System: {
+    CSSClassName: 'msgtype-default',
+    ColoredNames: false,
+    RoleplayHighlight: false,
+    Parse: function (messageData) {
+      return <p>{this.FormatMessage ? this.FormatMessage(messageData) : ''}</p>;
+    },
+  },
   Say: {
     CSSClassName: 'msgtype-say',
     ColoredNames: true,
@@ -169,6 +177,8 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const playerActorDict = useAppSelector(selectPlayerDict);
   const messageSettings = MessageTypeSettings[message.messageType];
   const playerActor = playerActorDict[message.senderId];
+
+  console.log('message', message);
 
   let msgClassName = 'chat-message';
   if (playerActor?.ignored) {

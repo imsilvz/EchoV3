@@ -26,8 +26,17 @@ namespace EchoV3.Windows
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow(FFXIVEventService eventService)
+        private FFXIVEventService _eventService;
+        private DeucalionService _deucalionService;
+        private InjectionService _injectionService;
+        public MainWindow(
+            InjectionService injectionService, 
+            DeucalionService deucalionService, 
+            FFXIVEventService eventService)
         {
+            _eventService = eventService;
+            _deucalionService = deucalionService;
+            _injectionService = injectionService;
             InitializeComponent();
             InitializeAsync();
         }
@@ -55,6 +64,9 @@ namespace EchoV3.Windows
             ChatEvent.OnEventFired += OnChatEvent;
             ChatHandlerEvent.OnEventFired += OnChatHandlerEvent;
             ClientTriggerEvent.OnEventFired += OnClientTriggerEvent;
+            _deucalionService.ConnectionStateChanged += DeucalionStateChanged;
+            _injectionService.StartScanner();
+            
         }
         protected override void OnClosing(CancelEventArgs e)
         {
@@ -97,6 +109,27 @@ namespace EchoV3.Windows
         private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();
+        }
+
+        public void DeucalionStateChanged(object? sender, bool connectionState)
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                Debug.WriteLine($"CONNECTION STATE: {connectionState}");
+                EchoSystemIpc chatMsg = new EchoSystemIpc
+                {
+                    Timestamp = DateTime.Now,
+                    SourceActorId = 0,
+                    DestinationActorId = 0,
+                    Message = connectionState ? "Connection to FFXIV established." : "Connection to FFXIV has been lost.",
+                };
+
+                var serializeOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                webView.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(chatMsg, serializeOptions));
+            });
         }
 
         public void OnChatEvent(object? sender, ChatEvent chatEvent)
