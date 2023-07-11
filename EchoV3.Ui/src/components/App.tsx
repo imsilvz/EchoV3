@@ -170,6 +170,7 @@ const App = () => {
         xPos={showContextMenu.xPos}
         yPos={showContextMenu.yPos}
         onClose={closeContextMenu}
+        clearChatlog={() => setMessageList([])}
       />
     </>
   );
