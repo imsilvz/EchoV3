@@ -30,6 +30,7 @@ interface ContextMenuProps {
   xPos: number;
   yPos: number;
   onClose: () => void;
+  clearChatlog: () => void;
 }
 
 interface ContextSubmenuProps {
@@ -269,6 +270,7 @@ const ContextMenu = ({
   xPos,
   yPos,
   onClose,
+  clearChatlog,
 }: ContextMenuProps) => {
   const dispatch = useAppDispatch();
   const chatSettings = useAppSelector(selectChatSettings);
@@ -459,6 +461,10 @@ const ContextMenu = ({
       {
         title: 'Clear Message History',
         type: 'ACTION',
+        onClick: () => {
+          clearChatlog();
+          onClose();
+        },
       },
     );
   }
